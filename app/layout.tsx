@@ -51,6 +51,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body
+        suppressHydrationWarning
         className={`${inter.variable} ${poppins.variable} ${jetbrainsMono.variable} antialiased flex flex-col min-h-screen bg-gradient-to-b from-gray-900 to-gray-950`}
       >
         <div className="fixed inset-0 -z-10 h-full w-full bg-[radial-gradient(#374151_1px,transparent_1px)] [background-size:20px_20px] opacity-20"></div>
@@ -157,7 +158,7 @@ export default function RootLayout({
               </div>
             </div>
             <div className="border-t border-gray-800 pt-8">
-              <p className="text-sm text-gray-400 text-center">
+              <p className="text-sm text-gray-400 text-center" suppressHydrationWarning>
                 © {new Date().getFullYear()} Pomo AI-doro. All rights reserved.
               </p>
             </div>
