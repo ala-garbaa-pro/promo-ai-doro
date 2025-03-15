@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Poppins, JetBrains_Mono } from "next/font/google";
+import Link from "next/link";
 import "./globals.css";
 
 const inter = Inter({
@@ -55,7 +56,7 @@ export default function RootLayout({
         <div className="fixed inset-0 -z-10 h-full w-full bg-[radial-gradient(#374151_1px,transparent_1px)] [background-size:20px_20px] opacity-20"></div>
         <header className="sticky top-0 z-50 backdrop-blur-lg bg-gray-950/80 border-b border-gray-800 px-4 py-3 sm:py-4">
           <div className="container mx-auto max-w-7xl flex justify-between items-center">
-            <a href="/" className="group flex items-center gap-2">
+            <Link href="/" className="group flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:shadow-indigo-500/40 transition-all duration-300">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-white">
                   <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 6a.75.75 0 0 0-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 0 0 0-1.5h-3.75V6Z" clipRule="evenodd" />
@@ -64,7 +65,7 @@ export default function RootLayout({
               <div className="text-base sm:text-lg font-semibold font-poppins text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-500 transition-all">
                 Pomo AI-doro
               </div>
-            </a>
+            </Link>
             <div className="flex items-center gap-4 sm:gap-6">
               <nav className="hidden md:flex items-center gap-6">
                 <a href="/features" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">Features</a>
