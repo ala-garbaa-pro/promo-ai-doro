@@ -1,0 +1,79 @@
+- If i ask you "pls commit changes", you ahev to add all changes and use the command "git diff --name-only", so without entering in edit mode and after push all changing.
+
+When helping with the SubTrack project, please follow these guidelines:
+
+1. Project Structure:
+
+   - Follow the Next.js app directory structure
+   - Place UI components in components/ui (shadcn), custom components in components/custom, and auth components in components/auth
+   - Put utility functions in lib/utils and server-side code in lib/server
+   - Store React hooks in the hooks directory
+
+2. Code Style:
+
+   - Use TypeScript with 2-space indentation
+   - Use double quotes for strings and imports
+   - Use PascalCase for components (e.g., SubscriptionCard)
+   - Use camelCase for functions and variables (e.g., handleSubmit)
+   - Use UPPER_SNAKE_CASE for constants (e.g., MAX_SUBSCRIPTIONS)
+   - Include "use client" directive where needed for Next.js components
+
+3. Component Development:
+
+   - Create functional components with TypeScript
+   - One component per file
+   - Use composition over inheritance
+   - Keep components small and focused
+   - Extract reusable logic to custom hooks
+   - Use shadcn/ui components with consistent styling
+   - Use Lucide icons for consistent visual language
+
+4. State Management:
+
+   - Use React hooks for local state
+   - Use context for shared state when appropriate
+   - Prefer controlled components
+
+5. Database:
+
+   - Use PostgreSQL with Drizzle ORM
+   - Include timestamps (createdAt, updatedAt) in all tables
+   - Use UUID primary keys
+   - Use snake_case and plural names for tables
+   - Define relations using Drizzle relations API
+
+6. Real-time Features:
+
+   - Use Socket.IO for chat and real-time updates
+   - Implement proper connection handling and error recovery
+   - Provide fallbacks for environments without WebSocket support
+
+7. UI/UX:
+
+   - Ensure responsive design that works on all screen sizes
+   - Maintain proper spacing from edges
+   - Use the SubTrack branding consistently
+   - Use the SVG logo appropriately throughout the application
+   - Minimize cognitive load in UI design to improve user experience
+
+8. Testing and Documentation:
+
+   - Write unit tests for utilities and integration tests for components
+   - Aim for 80% test coverage minimum
+   - Include JSDoc for functions
+   - Create README files for components
+   - Keep the changelog updated
+
+9. Error Handling & Debugging:
+
+   - Add `suppressHydrationWarning` to body and html elements when dealing with hydration errors
+   - Avoid client/server mismatches by not using browser-specific APIs during SSR
+   - Don't use random values or date/time functions directly in rendered components
+   - Ensure proper HTML tag nesting to prevent hydration errors
+   - Use error boundaries to catch and handle runtime errors gracefully
+
+10. Git Practices:
+   - Create feature branches from main
+   - Use conventional commits
+   - Write commit messages in English
+   - Require code review before merging
