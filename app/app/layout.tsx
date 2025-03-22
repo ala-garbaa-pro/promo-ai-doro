@@ -15,7 +15,7 @@ export default async function AppLayout({
   });
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-950 text-white">
+    <div className="flex h-screen overflow-hidden bg-background text-foreground">
       <SidebarProvider>
         <AppSidebar user={user} />
         <div className="flex flex-col flex-1 overflow-hidden">
