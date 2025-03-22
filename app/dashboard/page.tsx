@@ -1,16 +1,14 @@
+import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/session";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 export default async function DashboardPage() {
   // This will redirect to login if not authenticated
-  const user = await getCurrentUser();
+  await getCurrentUser();
 
+  // Redirect to the new app interface
+  redirect("/app");
+
+  // This part will never be reached due to the redirect
   return (
     <div className="container mx-auto py-10 px-4">
       <h1 className="text-3xl font-bold mb-8 text-white">Dashboard</h1>
