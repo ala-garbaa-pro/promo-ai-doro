@@ -11,6 +11,7 @@ import { Clock, BarChart3, ListTodo, Calendar } from "lucide-react";
 import { Timer } from "@/components/app/timer";
 import { AnimatedTransition } from "@/components/ui/animated-transition";
 import { AIFocusInsights } from "@/components/analytics/ai-focus-insights";
+import { AdaptiveSessionRecommendations } from "@/components/app/adaptive-session-recommendations";
 import { db } from "@/lib/server/db";
 import { sessions, tasks, analytics } from "@/lib/server/db/schema";
 import { eq, and, count, sum, avg, gte, desc, sql } from "drizzle-orm";
@@ -184,8 +185,15 @@ export default async function AppDashboardPage() {
         </div>
       </AnimatedTransition>
 
-      {/* Weekly Overview */}
+      {/* AI-Powered Recommendations */}
       <AnimatedTransition type="slide-up" duration={0.5} delay={0.3}>
+        <div className="mt-8">
+          <AdaptiveSessionRecommendations />
+        </div>
+      </AnimatedTransition>
+
+      {/* Weekly Overview */}
+      <AnimatedTransition type="slide-up" duration={0.5} delay={0.4}>
         <div className="mt-8">
           <Card>
             <CardHeader className="pb-3">
