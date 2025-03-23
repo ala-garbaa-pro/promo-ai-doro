@@ -1,79 +1,58 @@
-- If i ask you "pls commit changes", you ahev to add all changes and use the command "git diff --name-only", so without entering in edit mode and after push all changing.
+# Development Guidelines
 
-When helping with the SubTrack project, please follow these guidelines:
+## Table of Contents
+1. [Special Commands](#special-commands)
+2. [Code Style](#code-style)
+3. [Component Development](#component-development)
+4. [State Management](#state-management)
+5. [Testing and Documentation](#testing-and-documentation)
+6. [Error Handling & Debugging](#error-handling--debugging)
+7. [Git Practices](#git-practices)
 
-1. Project Structure:
+## Special Commands
 
-   - Follow the Next.js app directory structure
-   - Place UI components in components/ui (shadcn), custom components in components/custom, and auth components in components/auth
-   - Put utility functions in lib/utils and server-side code in lib/server
-   - Store React hooks in the hooks directory
+- If I ask you "pls commit changes", you have to add all changes and use the command "git diff --name-only", without entering edit mode, and then push all changes.
 
-2. Code Style:
+## Code Style
 
-   - Use TypeScript with 2-space indentation
-   - Use double quotes for strings and imports
-   - Use PascalCase for components (e.g., SubscriptionCard)
-   - Use camelCase for functions and variables (e.g., handleSubmit)
-   - Use UPPER_SNAKE_CASE for constants (e.g., MAX_SUBSCRIPTIONS)
-   - Include "use client" directive where needed for Next.js components
+- Use consistent indentation (2 spaces recommended)
+- Use consistent quotes for strings (single or double)
+- Follow naming conventions:
+  - PascalCase for components
+  - camelCase for functions and variables
+  - UPPER_SNAKE_CASE for constants
 
-3. Component Development:
+## Component Development
 
-   - Create functional components with TypeScript
-   - One component per file
-   - Use composition over inheritance
-   - Keep components small and focused
-   - Extract reusable logic to custom hooks
-   - Use shadcn/ui components with consistent styling
-   - Use Lucide icons for consistent visual language
+- Create functional components
+- Follow the one-component-per-file principle
+- Use composition over inheritance
+- Keep components small and focused on a single responsibility
+- Extract reusable logic to custom hooks
 
-4. State Management:
+## State Management
 
-   - Use React hooks for local state
-   - Use context for shared state when appropriate
-   - Prefer controlled components
+- Use React hooks for local component state
+- Use React Context for shared state when appropriate
+- Prefer controlled components over uncontrolled ones
+- Consider performance implications when designing state architecture
 
-5. Database:
+## Testing and Documentation
 
-   - Use PostgreSQL with Drizzle ORM
-   - Include timestamps (createdAt, updatedAt) in all tables
-   - Use UUID primary keys
-   - Use snake_case and plural names for tables
-   - Define relations using Drizzle relations API
+- Write tests for critical functionality
+- Include comments for complex logic
+- Create README files explaining usage
+- Keep documentation updated with changes
 
-6. Real-time Features:
+## Error Handling & Debugging
 
-   - Use Socket.IO for chat and real-time updates
-   - Implement proper connection handling and error recovery
-   - Provide fallbacks for environments without WebSocket support
+- Implement proper error handling
+- Use error boundaries to catch and handle runtime errors gracefully
+- Log meaningful error messages for debugging
 
-7. UI/UX:
+## Git Practices
 
-   - Ensure responsive design that works on all screen sizes
-   - Maintain proper spacing from edges
-   - Use the SubTrack branding consistently
-   - Use the SVG logo appropriately throughout the application
-   - Minimize cognitive load in UI design to improve user experience
-
-8. Testing and Documentation:
-
-   - Write unit tests for utilities and integration tests for components
-   - Aim for 80% test coverage minimum
-   - Include JSDoc for functions
-   - Create README files for components
-   - Keep the changelog updated
-
-9. Error Handling & Debugging:
-
-   - Add `suppressHydrationWarning` to body and html elements when dealing with hydration errors
-   - Avoid client/server mismatches by not using browser-specific APIs during SSR
-   - Don't use random values or date/time functions directly in rendered components
-   - Ensure proper HTML tag nesting to prevent hydration errors
-   - Use error boundaries to catch and handle runtime errors gracefully
-
-10. Git Practices:
-   - Create feature branches from main
-   - Use conventional commits
-   - Write commit messages in English
-   - Require code review before merging
+- Create feature branches from main branch
+- Use descriptive commit messages
+- Write commit messages in English
+- Keep commits focused on single logical changes
