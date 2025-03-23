@@ -26,6 +26,7 @@ export interface Task {
   recurringInterval?: number;
   recurringEndDate?: Date | string;
   parentTaskId?: string;
+  order: number;
   createdAt: Date | string;
   updatedAt: Date | string;
 }
@@ -46,6 +47,7 @@ export interface NewTask {
   recurringInterval?: number;
   recurringEndDate?: Date | string;
   parentTaskId?: string;
+  order?: number;
 }
 
 // Task update input
@@ -285,6 +287,78 @@ export function useTasks() {
     setFilters(newFilters);
   };
 
+  // Reorder tasks
+  const reorderTasks = async (taskIds: string[]) => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to reorder tasks",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/tasks/reorder", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ taskIds }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to reorder tasks");
+      }
+
+      // Update local state to reflect the new order
+      const reorderedTasks = [...tasks];
+      const taskMap = new Map(reorderedTasks.map((task) => [task.id, task]));
+
+      // Create a new array with tasks in the new order
+      const newOrderedTasks = taskIds
+        .map((id, index) => {
+          const task = taskMap.get(id);
+          if (task) {
+            return { ...task, order: index };
+          }
+          return null;
+        })
+        .filter(Boolean) as Task[];
+
+      // Add any tasks that weren't in the reordered list
+      const reorderedIds = new Set(taskIds);
+      const remainingTasks = reorderedTasks.filter(
+        (task) => !reorderedIds.has(task.id)
+      );
+
+      setTasks([...newOrderedTasks, ...remainingTasks]);
+
+      toast({
+        title: "Tasks Reordered",
+        description: "Your tasks have been reordered successfully",
+      });
+
+      return true;
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to reorder tasks";
+      setError(errorMessage);
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     tasks,
     isLoading,
@@ -297,5 +371,6 @@ export function useTasks() {
     updateTaskStatus,
     updateTaskPriority,
     setTaskFilters,
+    reorderTasks,
   };
 }

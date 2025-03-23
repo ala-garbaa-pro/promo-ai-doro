@@ -152,6 +152,7 @@ export const tasks = pgTable("tasks", {
   parentTaskId: uuid("parent_task_id").references(() => tasks.id, {
     onDelete: "set null",
   }),
+  order: integer("order").default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

@@ -43,6 +43,7 @@ import { AnimatedTransition } from "@/components/ui/animated-transition";
 import { AnimatedList } from "@/components/ui/animated-list";
 import { TaskCategories } from "@/components/tasks/task-categories";
 import { TaskListEnhanced } from "@/components/tasks/task-list-enhanced";
+import { DraggableTaskList } from "@/components/tasks/draggable-task-list";
 
 export default function TasksPage() {
   // Use the tasks hook
@@ -56,6 +57,7 @@ export default function TasksPage() {
     updateTaskStatus,
     deleteTask,
     setTaskFilters,
+    reorderTasks,
   } = useTasks();
 
   // New task input
@@ -305,11 +307,12 @@ export default function TasksPage() {
         </TabsList>
 
         <TabsContent value="all">
-          <TaskListEnhanced
-            tasks={tasks}
+          <DraggableTaskList
+            tasks={filteredTasks}
             toggleTaskStatus={toggleTaskStatus}
             deleteTask={deleteTask}
             openTaskDetails={openTaskDetails}
+            onReorder={reorderTasks}
           />
         </TabsContent>
 
