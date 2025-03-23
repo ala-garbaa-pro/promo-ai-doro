@@ -39,6 +39,9 @@ import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TaskDependencies } from "@/components/tasks/task-dependencies";
 import { RecurringTaskSettings } from "@/components/tasks/recurring-task-settings";
+import { TaskCategorySelector } from "@/components/tasks/task-category-selector";
+import { TaskCategoryBadge } from "@/components/tasks/task-category-badge";
+import { TaskDependencyGraph } from "@/components/tasks/task-dependency-graph";
 
 interface Category {
   id: string;
@@ -84,6 +87,7 @@ export function TaskDetails({
   // Categories state
   const [categories, setCategories] = useState<Category[]>([]);
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(false);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
 
   // Dependencies state
   const [dependencies, setDependencies] = useState<string[]>([]);
@@ -120,6 +124,25 @@ export function TaskDetails({
 
     fetchCategories();
   }, []);
+
+  // Fetch task categories
+  useEffect(() => {
+    if (!task) return;
+
+    const fetchTaskCategories = async () => {
+      try {
+        const response = await fetch(`/api/tasks/${task.id}/categories`);
+        if (response.ok) {
+          const data = await response.json();
+          setSelectedCategoryIds(data.map((cat: Category) => cat.id));
+        }
+      } catch (error) {
+        console.error("Error fetching task categories:", error);
+      }
+    };
+
+    fetchTaskCategories();
+  }, [task]);
 
   // Fetch dependencies
   useEffect(() => {
@@ -224,6 +247,7 @@ export function TaskDetails({
     setIsLoading(true);
 
     try {
+      // Save task details
       await onSave({
         id: task.id,
         title,
@@ -232,7 +256,7 @@ export function TaskDetails({
         status,
         estimatedPomodoros,
         dueDate: dueDate?.toISOString(),
-        categoryId,
+        categoryId, // Keep for backward compatibility
         category: category || undefined,
         tags: tags.length > 0 ? tags : undefined,
         isRecurring,
@@ -243,6 +267,24 @@ export function TaskDetails({
             ? recurringEndDate.toISOString()
             : undefined,
       });
+
+      // Save task categories
+      if (selectedCategoryIds.length > 0 || categoryId) {
+        try {
+          // Use PUT to replace all categories
+          await fetch(`/api/tasks/${task.id}/categories`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              categoryIds: selectedCategoryIds,
+            }),
+          });
+        } catch (error) {
+          console.error("Error saving task categories:", error);
+        }
+      }
 
       onClose();
     } catch (error) {
@@ -407,35 +449,17 @@ export function TaskDetails({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="category">Category</Label>
-            <Select
-              value={categoryId || ""}
-              onValueChange={(value) => setCategoryId(value || undefined)}
-            >
-              <SelectTrigger id="category">
-                <SelectValue placeholder="Select a category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">No category</SelectItem>
-                {isCategoriesLoading ? (
-                  <div className="flex items-center justify-center py-2">
-                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                  </div>
-                ) : (
-                  categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      <div className="flex items-center">
-                        <div
-                          className="h-3 w-3 rounded-full mr-2"
-                          style={{ backgroundColor: cat.color }}
-                        />
-                        {cat.name}
-                      </div>
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="categories">Categories</Label>
+            <div className="mt-1">
+              {/* Import the TaskCategorySelector component */}
+              {task && (
+                <TaskCategorySelector
+                  selectedCategoryIds={selectedCategoryIds}
+                  onCategoriesChange={setSelectedCategoryIds}
+                  maxCategories={5}
+                />
+              )}
+            </div>
           </div>
 
           <Tabs defaultValue="basic" className="mt-6">
@@ -490,12 +514,35 @@ export function TaskDetails({
               <div className="grid gap-4">
                 {task && (
                   <div className="space-y-6">
-                    <TaskDependencies
-                      taskId={task.id}
-                      dependencies={dependencies}
-                      onAddDependency={handleAddDependency}
-                      onRemoveDependency={handleRemoveDependency}
-                    />
+                      <TaskDependencies
+                        taskId={task.id}
+                        dependencies={dependencies}
+                        onAddDependency={handleAddDependency}
+                        onRemoveDependency={handleRemoveDependency}
+                      />
+
+                      <TaskDependencyGraph
+                        taskId={task.id}
+                        onOpenTask={(taskId) => {
+                          // Close current dialog and open the selected task
+                          onClose();
+                          // We need to wait for the current dialog to close
+                          setTimeout(() => {
+                            // Fetch the task and open it
+                            fetch(`/api/tasks/${taskId}`)
+                              .then((response) => response.json())
+                              .then((task) => {
+                                if (task && !task.error) {
+                                  onOpenTask?.(task);
+                                }
+                              })
+                              .catch((error) => {
+                                console.error("Error fetching task:", error);
+                              });
+                          }, 300);
+                        }}
+                      />
+                    </div>
 
                     <RecurringTaskSettings
                       isRecurring={isRecurring}
