@@ -15,6 +15,7 @@ import {
   Trophy,
   Target,
   CheckCircle,
+  BarChart,
 } from "lucide-react";
 import { useSettings } from "@/lib/contexts/settings-context";
 import { useToast } from "@/components/ui/use-toast";
@@ -28,6 +29,8 @@ import { useAccessibility } from "@/lib/contexts/accessibility-context";
 import { SkipToContent } from "@/components/accessibility/skip-to-content";
 import { AccessibleButton } from "@/components/accessibility/accessible-button";
 import { cn } from "@/lib/utils";
+import { useSessionPersistence } from "@/hooks/use-session-persistence";
+import { useAuth } from "@/components/auth/auth-provider";
 
 // Timer modes
 type TimerMode = "pomodoro" | "shortBreak" | "longBreak";
@@ -77,14 +80,47 @@ export default function TimerPage() {
   const { settings } = useSettings();
   const { toast } = useToast();
   const { announceToScreenReader, isReducedMotion } = useAccessibility();
+  const { user, isAuthenticated } = useAuth();
   const timerDurations = getTimerDurations(settings);
+
+  // Session persistence
+  const {
+    currentSession,
+    isLoading: isSessionLoading,
+    startSession,
+    completeSession,
+    getDailyCompletedPomodoros,
+  } = useSessionPersistence({
+    onSessionComplete: (session) => {
+      if (session.type === "work") {
+        // Refresh daily completed pomodoros count
+        fetchDailyCompletedPomodoros();
+      }
+    },
+  });
 
   // Request notification permission on component mount
   useEffect(() => {
     if (settings.notification.desktopNotificationsEnabled) {
       requestNotificationPermission();
     }
+
+    // Fetch daily completed pomodoros on mount
+    fetchDailyCompletedPomodoros();
   }, [settings.notification.desktopNotificationsEnabled]);
+
+  // Fetch daily completed pomodoros
+  const fetchDailyCompletedPomodoros = async () => {
+    if (isAuthenticated) {
+      const count = await getDailyCompletedPomodoros();
+      setCompletedPomodoros(count);
+
+      // Check if daily goal is reached
+      if (count >= settings.timer.dailyGoal && !dailyGoalReached) {
+        setDailyGoalReached(true);
+      }
+    }
+  };
 
   // Timer state
   const [mode, setMode] = useState<TimerMode>("pomodoro");
@@ -94,6 +130,8 @@ export default function TimerPage() {
   const [completedPomodoros, setCompletedPomodoros] = useState(0);
   const [dailyGoalReached, setDailyGoalReached] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [interruptionCount, setInterruptionCount] = useState(0);
 
   // Refs for accessibility
   const mainContentRef = useRef<HTMLDivElement>(null);
@@ -105,15 +143,31 @@ export default function TimerPage() {
   useEffect(() => {
     setTimeLeft(timerDurations[mode]);
     setIsRunning(false);
+    setInterruptionCount(0);
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
+    setSessionId(null);
   }, [mode, timerDurations]);
 
   // Timer logic
   useEffect(() => {
     if (isRunning) {
+      // Start a new session if one doesn't exist
+      if (!sessionId) {
+        const startNewSession = async () => {
+          try {
+            const session = await startSession(mode, timerDurations[mode] / 60);
+            setSessionId(session.id);
+          } catch (error) {
+            console.error("Failed to start session:", error);
+          }
+        };
+
+        startNewSession();
+      }
+
       timerRef.current = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
@@ -121,6 +175,13 @@ export default function TimerPage() {
             clearInterval(timerRef.current!);
             timerRef.current = null;
             setIsRunning(false);
+
+            // Complete the session
+            if (sessionId) {
+              completeSession(sessionId, false, interruptionCount);
+              setSessionId(null);
+              setInterruptionCount(0);
+            }
 
             // Play sound if not muted and sound is enabled
             if (!isMuted && settings.notification.soundEnabled) {
@@ -203,6 +264,9 @@ export default function TimerPage() {
           timerRef.current = null;
         }
       };
+    } else if (!isRunning && sessionId) {
+      // If timer is paused, record an interruption
+      setInterruptionCount((prev) => prev + 1);
     }
   }, [
     isRunning,
@@ -213,6 +277,11 @@ export default function TimerPage() {
     toast,
     announceToScreenReader,
     dailyGoalReached,
+    sessionId,
+    startSession,
+    completeSession,
+    timerDurations,
+    interruptionCount,
   ]);
 
   // Format time as MM:SS
@@ -251,6 +320,13 @@ export default function TimerPage() {
     setIsRunning(false);
     setTimeLeft(timerDurations[mode]);
 
+    // If there's an active session, mark it as interrupted
+    if (sessionId) {
+      completeSession(sessionId, true, interruptionCount, "Timer was reset");
+      setSessionId(null);
+      setInterruptionCount(0);
+    }
+
     // Announce to screen reader
     announceToScreenReader("Timer reset");
 
@@ -275,6 +351,13 @@ export default function TimerPage() {
   // Handle skip
   const skipToNext = () => {
     setIsRunning(false);
+
+    // If there's an active session, mark it as interrupted
+    if (sessionId) {
+      completeSession(sessionId, true, interruptionCount, "Timer was skipped");
+      setSessionId(null);
+      setInterruptionCount(0);
+    }
 
     // Determine next mode
     if (mode === "pomodoro") {
@@ -506,7 +589,19 @@ export default function TimerPage() {
               </div>
             </div>
 
-            <div className="flex justify-end mt-4">
+            <div className="flex justify-between mt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-gray-700 text-gray-400 hover:text-white"
+                asChild
+              >
+                <Link href="/app/analytics">
+                  <BarChart className="h-4 w-4 mr-1" />
+                  Analytics
+                </Link>
+              </Button>
+
               <Button
                 variant="outline"
                 size="sm"
