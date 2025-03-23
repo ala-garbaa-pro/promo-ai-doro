@@ -17,6 +17,7 @@ import {
   ShieldAlert,
   FileText,
   Brain,
+  Zap,
 } from "lucide-react";
 import {
   Sidebar,
@@ -111,6 +112,12 @@ export function AppSidebar({ user }: AppSidebarProps) {
             icon={<Brain className="h-5 w-5" />}
             label="Cognitive"
             active={pathname === "/app/cognitive-enhancement"}
+          />
+          <SidebarNavItem
+            href="/app/flow-state"
+            icon={<Zap className="h-5 w-5" />}
+            label="Flow State"
+            active={pathname === "/app/flow-state"}
           />
           <SidebarNavItem
             href="/app/analytics"

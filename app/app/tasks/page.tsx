@@ -19,6 +19,7 @@ import {
   AlertCircle,
   Search,
   Filter,
+  HelpCircle,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -44,6 +45,9 @@ import { AnimatedList } from "@/components/ui/animated-list";
 import { TaskCategories } from "@/components/tasks/task-categories";
 import { TaskListEnhanced } from "@/components/tasks/task-list-enhanced";
 import { DraggableTaskList } from "@/components/tasks/draggable-task-list";
+import { TaskInputPreview } from "@/components/tasks/task-input-preview";
+import { TaskInputHelp } from "@/components/tasks/task-input-help";
+import { parseTaskInput } from "@/lib/utils/task-parser";
 
 export default function TasksPage() {
   // Use the tasks hook
@@ -77,11 +81,21 @@ export default function TasksPage() {
     setIsCreating(true);
 
     try {
+      // Parse the task input
+      const parsedTask = parseTaskInput(newTaskTitle);
+
+      // Create the task with the parsed details
       await createTask({
-        title: newTaskTitle,
-        priority: "medium",
+        title: parsedTask.title,
+        priority: parsedTask.priority || "medium",
         status: "pending",
-        estimatedPomodoros: 1,
+        estimatedPomodoros: parsedTask.estimatedPomodoros || 1,
+        dueDate: parsedTask.dueDate,
+        category: parsedTask.category,
+        tags: parsedTask.tags,
+        isRecurring: parsedTask.isRecurring,
+        recurringType: parsedTask.recurringType,
+        recurringInterval: parsedTask.recurringInterval,
       });
 
       setNewTaskTitle("");
@@ -262,18 +276,24 @@ export default function TasksPage() {
 
       <div className="mb-8">
         <div className="flex gap-2">
-          <Input
-            type="text"
-            placeholder="Add a new task..."
-            value={newTaskTitle}
-            onChange={(e) => setNewTaskTitle(e.target.value)}
-            className="focus-visible:ring-primary"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                handleAddTask();
-              }
-            }}
-          />
+          <div className="flex-1 relative">
+            <div className="absolute right-2 top-2">
+              <TaskInputHelp />
+            </div>
+            <Input
+              type="text"
+              placeholder="Add a new task... (e.g., 'Call John tomorrow at 3pm p1 #work')"
+              value={newTaskTitle}
+              onChange={(e) => setNewTaskTitle(e.target.value)}
+              className="focus-visible:ring-primary pr-10"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleAddTask();
+                }
+              }}
+            />
+            <TaskInputPreview input={newTaskTitle} />
+          </div>
           <Button onClick={handleAddTask} disabled={isCreating} className="">
             {isCreating ? (
               <>

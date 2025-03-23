@@ -7,6 +7,8 @@ import { AppHeader } from "@/components/app/header";
 import { KeyboardShortcutsProvider } from "@/components/app/keyboard-shortcuts-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { SettingsProvider } from "@/components/app/settings-provider";
+import { FocusModeProvider } from "@/lib/contexts/focus-mode-context";
+import { FocusModeOverlay } from "@/components/cognitive-enhancement/focus-mode-overlay";
 
 export default async function AppLayout({
   children,
@@ -27,16 +29,19 @@ export default async function AppLayout({
   return (
     <SettingsProvider>
       <KeyboardShortcutsProvider>
-        <div className="flex h-screen overflow-hidden bg-background text-foreground">
-          <SidebarProvider>
-            <AppSidebar user={user} />
-            <div className="flex flex-col flex-1 overflow-hidden">
-              <AppHeader user={user} />
-              <main className="flex-1 overflow-auto">{children}</main>
-            </div>
-          </SidebarProvider>
-        </div>
-        <Toaster />
+        <FocusModeProvider>
+          <div className="flex h-screen overflow-hidden bg-background text-foreground">
+            <SidebarProvider>
+              <AppSidebar user={user} />
+              <div className="flex flex-col flex-1 overflow-hidden">
+                <AppHeader user={user} />
+                <main className="flex-1 overflow-auto">{children}</main>
+              </div>
+            </SidebarProvider>
+          </div>
+          <FocusModeOverlay />
+          <Toaster />
+        </FocusModeProvider>
       </KeyboardShortcutsProvider>
     </SettingsProvider>
   );

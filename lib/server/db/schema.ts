@@ -10,6 +10,7 @@ import {
   boolean,
   json,
   pgEnum,
+  float,
 } from "drizzle-orm/pg-core";
 
 // Enums
@@ -35,6 +36,19 @@ export const soundTypeEnum = pgEnum("sound_type", [
   "ambient",
   "music",
   "custom",
+]);
+export const flowStateLevelEnum = pgEnum("flow_state_level", [
+  "none",
+  "entering",
+  "light",
+  "deep",
+  "exiting",
+]);
+export const flowTriggerTypeEnum = pgEnum("flow_trigger_type", [
+  "environment",
+  "activity",
+  "time",
+  "ritual",
 ]);
 
 // Users table
@@ -461,3 +475,120 @@ export const integrationsRelations = relations(integrations, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+// Flow State Sessions table
+export const flowStateSessions = pgTable("flow_state_sessions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  sessionId: uuid("session_id").references(() => sessions.id, {
+    onDelete: "set null",
+  }),
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time"),
+  duration: integer("duration"), // in seconds
+  maxFocusScore: integer("max_focus_score").notNull(),
+  avgFocusScore: integer("avg_focus_score").notNull(),
+  flowStateLevel: flowStateLevelEnum("flow_state_level").notNull(),
+  interruptionCount: integer("interruption_count").default(0),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Flow State Metrics table
+export const flowStateMetrics = pgTable("flow_state_metrics", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  flowSessionId: uuid("flow_session_id")
+    .notNull()
+    .references(() => flowStateSessions.id, { onDelete: "cascade" }),
+  timestamp: timestamp("timestamp").notNull(),
+  focusScore: integer("focus_score").notNull(),
+  flowStateLevel: flowStateLevelEnum("flow_state_level").notNull(),
+  interactionRate: float("interaction_rate").notNull(),
+  distractionCount: integer("distraction_count").default(0),
+  confidenceScore: integer("confidence_score").notNull(),
+});
+
+// Flow State Triggers table
+export const flowStateTriggers = pgTable("flow_state_triggers", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  type: flowTriggerTypeEnum("type").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  effectiveness: integer("effectiveness").notNull(), // 0-100 score
+  frequency: integer("frequency").notNull(), // count of how often this trigger is used
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Flow Session Triggers junction table
+export const flowSessionTriggers = pgTable("flow_session_triggers", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  flowSessionId: uuid("flow_session_id")
+    .notNull()
+    .references(() => flowStateSessions.id, { onDelete: "cascade" }),
+  triggerId: uuid("trigger_id")
+    .notNull()
+    .references(() => flowStateTriggers.id, { onDelete: "cascade" }),
+  effectiveness: integer("effectiveness"), // 0-100 score for this specific session
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Flow State Sessions relations
+export const flowStateSessionsRelations = relations(
+  flowStateSessions,
+  ({ one, many }) => ({
+    user: one(users, {
+      fields: [flowStateSessions.userId],
+      references: [users.id],
+    }),
+    session: one(sessions, {
+      fields: [flowStateSessions.sessionId],
+      references: [sessions.id],
+    }),
+    metrics: many(flowStateMetrics),
+    sessionTriggers: many(flowSessionTriggers),
+  })
+);
+
+// Flow State Metrics relations
+export const flowStateMetricsRelations = relations(
+  flowStateMetrics,
+  ({ one }) => ({
+    flowSession: one(flowStateSessions, {
+      fields: [flowStateMetrics.flowSessionId],
+      references: [flowStateSessions.id],
+    }),
+  })
+);
+
+// Flow State Triggers relations
+export const flowStateTriggersRelations = relations(
+  flowStateTriggers,
+  ({ one, many }) => ({
+    user: one(users, {
+      fields: [flowStateTriggers.userId],
+      references: [users.id],
+    }),
+    sessionTriggers: many(flowSessionTriggers),
+  })
+);
+
+// Flow Session Triggers relations
+export const flowSessionTriggersRelations = relations(
+  flowSessionTriggers,
+  ({ one }) => ({
+    flowSession: one(flowStateSessions, {
+      fields: [flowSessionTriggers.flowSessionId],
+      references: [flowStateSessions.id],
+    }),
+    trigger: one(flowStateTriggers, {
+      fields: [flowSessionTriggers.triggerId],
+      references: [flowStateTriggers.id],
+    }),
+  })
+);

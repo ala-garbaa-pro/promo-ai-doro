@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Bell, Search, Plus, Menu, X, Sun, Moon } from "lucide-react";
+import { FocusModeToggle } from "@/components/cognitive-enhancement/focus-mode-toggle";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/user-avatar";
@@ -54,6 +55,7 @@ export function AppHeader({ user }: AppHeaderProps) {
         <div className="flex items-center gap-4">
           <OfflineStatus />
           <ThemeToggle />
+          <FocusModeToggle variant="compact" />
 
           <Button
             variant="ghost"
