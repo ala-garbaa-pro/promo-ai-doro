@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/better-auth";
 import { headers } from "next/headers";
-import { runMigration } from "@/lib/server/db/migrations/add-task-categories-junction";
+import { runMigration as runTaskCategoriesMigration } from "@/lib/server/db/migrations/add-task-categories-junction";
+import { runMigration as runTaskTemplatesMigration } from "@/lib/server/db/migrations/add-task-templates";
 
 // POST /api/migrations/run - Run database migrations
 export async function POST(request: NextRequest) {
@@ -23,8 +24,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Run the migration
-    await runMigration();
+    // Parse request body to determine which migration to run
+    const body = await request.json();
+    const { migrationType } = body;
+
+    if (migrationType === "taskTemplates") {
+      // Run task templates migration
+      await runTaskTemplatesMigration();
+    } else {
+      // Default to task categories migration
+      await runTaskCategoriesMigration();
+    }
 
     return NextResponse.json({
       success: true,

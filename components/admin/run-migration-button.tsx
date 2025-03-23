@@ -5,7 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
-export function RunMigrationButton() {
+interface RunMigrationButtonProps {
+  migrationType?: "taskCategories" | "taskTemplates";
+  label?: string;
+}
+
+export function RunMigrationButton({
+  migrationType = "taskCategories",
+  label = "Run Migration",
+}: RunMigrationButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -15,6 +23,10 @@ export function RunMigrationButton() {
     try {
       const response = await fetch("/api/migrations/run", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ migrationType }),
       });
 
       const data = await response.json();
@@ -56,7 +68,7 @@ export function RunMigrationButton() {
           Running Migration...
         </>
       ) : (
-        "Run Task Categories Migration"
+        label
       )}
     </Button>
   );

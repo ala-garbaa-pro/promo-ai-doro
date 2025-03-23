@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   Flame,
   ShieldAlert,
+  FileText,
 } from "lucide-react";
 import {
   Sidebar,
@@ -96,6 +97,13 @@ export function AppSidebar({ user }: AppSidebarProps) {
             icon={<ListTodo className="h-5 w-5" />}
             label="Tasks"
             active={pathname === "/app/tasks"}
+          />
+
+          <SidebarNavItem
+            href="/app/templates"
+            icon={<FileText className="h-5 w-5" />}
+            label="Templates"
+            active={pathname === "/app/templates"}
           />
           <SidebarNavItem
             href="/app/analytics"

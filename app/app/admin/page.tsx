@@ -44,7 +44,16 @@ export default async function AdminPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <RunMigrationButton />
+            <div className="space-y-3">
+              <RunMigrationButton
+                migrationType="taskCategories"
+                label="Run Task Categories Migration"
+              />
+              <RunMigrationButton
+                migrationType="taskTemplates"
+                label="Run Task Templates Migration"
+              />
+            </div>
           </CardContent>
         </Card>
       </div>
