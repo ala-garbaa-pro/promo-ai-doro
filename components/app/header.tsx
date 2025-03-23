@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
+import { OfflineStatus } from "./offline-status";
 
 interface AppHeaderProps {
   user: {
@@ -51,6 +52,7 @@ export function AppHeader({ user }: AppHeaderProps) {
         </div>
 
         <div className="flex items-center gap-4">
+          <OfflineStatus />
           <ThemeToggle />
 
           <Button

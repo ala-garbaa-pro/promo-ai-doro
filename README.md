@@ -30,8 +30,10 @@ Your intelligent productivity companion - Boost your focus and productivity with
 ### Mobile and Offline Support
 
 - Progressive Web App (PWA) functionality
-- Offline data synchronization
+- Offline data synchronization with IndexedDB
+- Offline status indicator
 - Mobile-optimized interface
+- Offline fallback page
 
 ## Getting Started
 
