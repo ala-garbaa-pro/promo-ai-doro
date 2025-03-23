@@ -10,6 +10,7 @@ Your intelligent productivity companion - Boost your focus and productivity with
 - Organize tasks by priority, status, and category
 - Drag and drop task reordering
 - Task templates for recurring workflows
+- Drag and drop template item management
 - Task dependencies and subtasks
 
 ### Pomodoro Timer

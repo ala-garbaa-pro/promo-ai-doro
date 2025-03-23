@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTaskTemplates, TaskTemplate } from "@/hooks/use-task-templates";
+import { TemplateEditor } from "./template-editor";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -70,6 +71,10 @@ export function TaskTemplatesList({
     description: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<TaskTemplate | null>(
+    null
+  );
   const { toast } = useToast();
 
   // Handle create template
@@ -105,6 +110,18 @@ export function TaskTemplatesList({
     if (success && onApplyTemplate) {
       onApplyTemplate(template);
     }
+  };
+
+  // Handle edit template
+  const handleEditTemplate = (template: TaskTemplate) => {
+    setSelectedTemplate(template);
+    setIsEditorOpen(true);
+  };
+
+  // Handle close editor
+  const handleCloseEditor = () => {
+    setIsEditorOpen(false);
+    setSelectedTemplate(null);
   };
 
   if (isLoading) {
@@ -212,7 +229,7 @@ export function TaskTemplatesList({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
-                        onClick={() => onEditTemplate?.(template)}
+                        onClick={() => handleEditTemplate(template)}
                       >
                         <Pencil className="mr-2 h-4 w-4" />
                         Edit Template
@@ -337,6 +354,16 @@ export function TaskTemplatesList({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Template Editor */}
+      {selectedTemplate && (
+        <TemplateEditor
+          template={selectedTemplate}
+          isOpen={isEditorOpen}
+          onOpenChange={setIsEditorOpen}
+          onBack={handleCloseEditor}
+        />
+      )}
     </div>
   );
 }
