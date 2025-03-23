@@ -37,6 +37,7 @@ import {
   Download,
   Trash2,
   Shield,
+  Accessibility,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
@@ -44,6 +45,10 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/components/auth/auth-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { useSettings } from "@/lib/contexts/settings-context";
+import { useAccessibility } from "@/lib/contexts/accessibility-context";
+import { SkipToContent } from "@/components/accessibility/skip-to-content";
+import AccessibilitySettings from "./accessibility";
+import { useRef } from "react";
 
 export default function SettingsPage() {
   const { toast } = useToast();
@@ -57,7 +62,13 @@ export default function SettingsPage() {
     resetSettings,
     saveSettings,
     hasUnsavedChanges,
+    exportSettings,
+    importSettings,
   } = useSettings();
+  const { announceToScreenReader } = useAccessibility();
+
+  // Refs for keyboard navigation
+  const mainContentRef = useRef<HTMLDivElement>(null);
 
   // Handle timer settings change
   const handleTimerSettingChange = (
@@ -103,7 +114,13 @@ export default function SettingsPage() {
 
   return (
     <div className="container mx-auto p-6">
-      <div className="flex items-center justify-between mb-8">
+      <SkipToContent contentId="settings-content" />
+      <div
+        className="flex items-center justify-between mb-8"
+        id="settings-content"
+        ref={mainContentRef}
+        tabIndex={-1}
+      >
         <div>
           <h1 className="text-3xl font-bold">Settings</h1>
           <p className="text-muted-foreground mt-1">
@@ -120,7 +137,11 @@ export default function SettingsPage() {
             <RotateCcw className="h-4 w-4 mr-2" />
             Reset
           </Button>
-          <Button onClick={handleSaveSettings} disabled={!hasUnsavedChanges}>
+          <Button
+            onClick={handleSaveSettings}
+            disabled={!hasUnsavedChanges}
+            aria-label="Save changes"
+          >
             <Save className="h-4 w-4 mr-2" />
             {hasUnsavedChanges ? "Save Changes" : "Saved"}
           </Button>
@@ -128,7 +149,7 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="timer" className="w-full">
-        <TabsList className="w-full mb-6 grid grid-cols-5 h-auto">
+        <TabsList className="w-full mb-6 grid grid-cols-6 h-auto">
           <TabsTrigger value="timer" className="flex items-center gap-2 py-3">
             <Clock className="h-4 w-4" />
             <span className="hidden sm:inline">Timer</span>
@@ -151,6 +172,13 @@ export default function SettingsPage() {
           <TabsTrigger value="data" className="flex items-center gap-2 py-3">
             <Database className="h-4 w-4" />
             <span className="hidden sm:inline">Data</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="accessibility"
+            className="flex items-center gap-2 py-3"
+          >
+            <Accessibility className="h-4 w-4" />
+            <span className="hidden sm:inline">Accessibility</span>
           </TabsTrigger>
         </TabsList>
 
@@ -695,6 +723,11 @@ export default function SettingsPage() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Accessibility Settings */}
+        <TabsContent value="accessibility">
+          <AccessibilitySettings />
         </TabsContent>
       </Tabs>
     </div>

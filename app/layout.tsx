@@ -6,6 +6,7 @@ import LayoutWrapper from "@/components/app/layout-wrapper";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { SettingsProvider } from "@/lib/contexts/settings-context";
+import { AccessibilityProvider } from "@/lib/contexts/accessibility-context";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -54,8 +55,10 @@ export default function RootLayout({
         >
           <AuthProvider>
             <SettingsProvider>
-              <LayoutWrapper>{children}</LayoutWrapper>
-              <Toaster />
+              <AccessibilityProvider>
+                <LayoutWrapper>{children}</LayoutWrapper>
+                <Toaster />
+              </AccessibilityProvider>
             </SettingsProvider>
           </AuthProvider>
         </ThemeProvider>

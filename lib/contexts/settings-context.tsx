@@ -11,6 +11,15 @@ export interface TimerSettings {
   autoStartBreaks: boolean;
   autoStartPomodoros: boolean;
   longBreakInterval: number;
+  autoIncrementFocus: boolean;
+  incrementAmount: number;
+  dailyGoal: number;
+  timerLabels: {
+    pomodoro: string;
+    shortBreak: string;
+    longBreak: string;
+  };
+  countDirection: "down" | "up";
 }
 
 export interface NotificationSettings {
@@ -18,17 +27,42 @@ export interface NotificationSettings {
   desktopNotificationsEnabled: boolean;
   volume: number;
   notificationSound: string;
+  customMessages: {
+    pomodoro: string;
+    shortBreak: string;
+    longBreak: string;
+  };
+  showRemainingTime: boolean;
+  notifyBeforeEnd: boolean;
+  notifyBeforeEndTime: number; // in seconds
 }
 
 export interface ThemeSettings {
   fontSize: "small" | "medium" | "large";
   accentColor: string;
+  fontFamily: "system" | "poppins" | "inter" | "jetbrains";
+  animationSpeed: "none" | "slow" | "normal" | "fast";
+  useCustomColors: boolean;
+  customColors: {
+    primary: string;
+    background: string;
+    card: string;
+  };
+  timerStyle: "minimal" | "classic" | "digital";
+  showProgressBar: boolean;
 }
 
 export interface AppSettings {
   timer: TimerSettings;
   notification: NotificationSettings;
   theme: ThemeSettings;
+  accessibility: {
+    highContrastMode: boolean;
+    reducedMotion: boolean;
+    largeText: boolean;
+    keyboardShortcutsEnabled: boolean;
+    screenReaderAnnouncements: boolean;
+  };
 }
 
 // Default settings
@@ -40,16 +74,50 @@ export const defaultSettings: AppSettings = {
     autoStartBreaks: false,
     autoStartPomodoros: false,
     longBreakInterval: 4,
+    autoIncrementFocus: false,
+    incrementAmount: 5,
+    dailyGoal: 8,
+    timerLabels: {
+      pomodoro: "Focus",
+      shortBreak: "Short Break",
+      longBreak: "Long Break",
+    },
+    countDirection: "down",
   },
   notification: {
     soundEnabled: true,
     desktopNotificationsEnabled: true,
     volume: 80,
     notificationSound: "bell",
+    customMessages: {
+      pomodoro: "Time to focus!",
+      shortBreak: "Take a short break!",
+      longBreak: "Take a long break!",
+    },
+    showRemainingTime: true,
+    notifyBeforeEnd: false,
+    notifyBeforeEndTime: 30,
   },
   theme: {
     fontSize: "medium",
     accentColor: "indigo",
+    fontFamily: "system",
+    animationSpeed: "normal",
+    useCustomColors: false,
+    customColors: {
+      primary: "#6366f1",
+      background: "#ffffff",
+      card: "#f8fafc",
+    },
+    timerStyle: "classic",
+    showProgressBar: true,
+  },
+  accessibility: {
+    highContrastMode: false,
+    reducedMotion: false,
+    largeText: false,
+    keyboardShortcutsEnabled: true,
+    screenReaderAnnouncements: true,
   },
 };
 
@@ -59,9 +127,14 @@ interface SettingsContextType {
   updateTimerSettings: (settings: Partial<TimerSettings>) => void;
   updateNotificationSettings: (settings: Partial<NotificationSettings>) => void;
   updateThemeSettings: (settings: Partial<ThemeSettings>) => void;
+  updateAccessibilitySettings: (
+    settings: Partial<AppSettings["accessibility"]>
+  ) => void;
   resetSettings: () => void;
   saveSettings: () => void;
   hasUnsavedChanges: boolean;
+  exportSettings: () => string;
+  importSettings: (settingsJson: string) => boolean;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(
@@ -143,6 +216,19 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     }));
   };
 
+  // Update accessibility settings
+  const updateAccessibilitySettings = (
+    newSettings: Partial<AppSettings["accessibility"]>
+  ) => {
+    setSettings((prev) => ({
+      ...prev,
+      accessibility: {
+        ...prev.accessibility,
+        ...newSettings,
+      },
+    }));
+  };
+
   // Reset settings to defaults
   const resetSettings = () => {
     setSettings(defaultSettings);
@@ -159,6 +245,34 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Export settings as JSON string
+  const exportSettings = (): string => {
+    return JSON.stringify(settings, null, 2);
+  };
+
+  // Import settings from JSON string
+  const importSettings = (settingsJson: string): boolean => {
+    try {
+      const parsedSettings = JSON.parse(settingsJson) as AppSettings;
+
+      // Validate the imported settings
+      if (
+        !parsedSettings.timer ||
+        !parsedSettings.notification ||
+        !parsedSettings.theme ||
+        !parsedSettings.accessibility
+      ) {
+        throw new Error("Invalid settings format");
+      }
+
+      setSettings(parsedSettings);
+      return true;
+    } catch (error) {
+      console.error("Failed to import settings:", error);
+      return false;
+    }
+  };
+
   return (
     <SettingsContext.Provider
       value={{
@@ -166,9 +280,12 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         updateTimerSettings,
         updateNotificationSettings,
         updateThemeSettings,
+        updateAccessibilitySettings,
         resetSettings,
         saveSettings,
         hasUnsavedChanges,
+        exportSettings,
+        importSettings,
       }}
     >
       {children}
