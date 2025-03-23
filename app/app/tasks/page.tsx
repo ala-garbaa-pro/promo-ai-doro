@@ -42,6 +42,7 @@ import {
 import { AnimatedTransition } from "@/components/ui/animated-transition";
 import { AnimatedList } from "@/components/ui/animated-list";
 import { TaskCategories } from "@/components/tasks/task-categories";
+import { TaskListEnhanced } from "@/components/tasks/task-list-enhanced";
 
 export default function TasksPage() {
   // Use the tasks hook
@@ -304,146 +305,46 @@ export default function TasksPage() {
         </TabsList>
 
         <TabsContent value="all">
-          <TaskList
+          <TaskListEnhanced
             tasks={tasks}
             toggleTaskStatus={toggleTaskStatus}
             deleteTask={deleteTask}
-            getPriorityColor={getPriorityColor}
-            getStatusIcon={getStatusIcon}
+            openTaskDetails={openTaskDetails}
           />
         </TabsContent>
 
         <TabsContent value="pending">
-          <TaskList
+          <TaskListEnhanced
             tasks={pendingTasks}
             toggleTaskStatus={toggleTaskStatus}
             deleteTask={deleteTask}
-            getPriorityColor={getPriorityColor}
-            getStatusIcon={getStatusIcon}
+            openTaskDetails={openTaskDetails}
           />
         </TabsContent>
 
         <TabsContent value="in-progress">
-          <TaskList
+          <TaskListEnhanced
             tasks={inProgressTasks}
             toggleTaskStatus={toggleTaskStatus}
             deleteTask={deleteTask}
-            getPriorityColor={getPriorityColor}
-            getStatusIcon={getStatusIcon}
+            openTaskDetails={openTaskDetails}
           />
         </TabsContent>
 
         <TabsContent value="completed">
-          <Card>
-            <CardHeader>
-              <CardTitle>Completed Tasks</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {completedTasks.length === 0 ? (
-                <p className="text-muted-foreground">
-                  No completed tasks found
-                </p>
-              ) : (
-                <ul className="divide-y">
-                  {completedTasks.map((task) => (
-                    <li
-                      key={task.id}
-                      className="p-4 hover:bg-accent/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-1">
-                          <button
-                            className="rounded-full p-1 hover:bg-accent/50"
-                            onClick={() =>
-                              toggleTaskStatus(task.id, task.status)
-                            }
-                          >
-                            <CheckCircle2 className="h-5 w-5 text-green-500" />
-                          </button>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2">
-                            <div>
-                              <h3 className="text-base font-medium text-muted-foreground line-through">
-                                {task.title}
-                              </h3>
-                              {task.description && (
-                                <p className="text-sm text-muted-foreground mt-1 truncate">
-                                  {task.description}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                            {task.estimatedPomodoros && (
-                              <div className="flex items-center">
-                                <Clock className="h-3 w-3 mr-1" />
-                                {task.estimatedPomodoros}
-                              </div>
-                            )}
-                            {task.dueDate && (
-                              <div className="flex items-center">
-                                <Calendar className="h-3 w-3 mr-1" />
-                                {new Date(task.dueDate).toLocaleDateString()}
-                              </div>
-                            )}
-                            {(task.categoryId || task.category) && (
-                              <div className="flex items-center">
-                                <Tag className="h-3 w-3 mr-1" />
-                                {task.category || "Category"}
-                              </div>
-                            )}
-                            {task.priority && (
-                              <div className="flex items-center">
-                                <Flag className="h-3 w-3 mr-1" />
-                                {task.priority}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                            >
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuItem
-                              onClick={() => openTaskDetails(task)}
-                            >
-                              <Plus className="h-4 w-4 mr-2" />
-                              Edit Task
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onClick={() => deleteTask(task.id)}
-                              className="text-red-500 focus:text-red-500"
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </CardContent>
-          </Card>
+          <TaskListEnhanced
+            tasks={completedTasks}
+            toggleTaskStatus={toggleTaskStatus}
+            deleteTask={deleteTask}
+            openTaskDetails={openTaskDetails}
+          />
         </TabsContent>
 
         <TabsContent value="cancelled">
-          <TaskList
+          <TaskListEnhanced
             tasks={cancelledTasks}
             toggleTaskStatus={toggleTaskStatus}
             deleteTask={deleteTask}
-            getPriorityColor={getPriorityColor}
-            getStatusIcon={getStatusIcon}
             openTaskDetails={openTaskDetails}
           />
         </TabsContent>

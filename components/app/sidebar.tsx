@@ -14,6 +14,7 @@ import {
   User,
   CheckCircle2,
   Flame,
+  ShieldAlert,
 } from "lucide-react";
 import {
   Sidebar,
@@ -38,6 +39,7 @@ interface AppSidebarProps {
     name?: string;
     email: string;
     avatar?: string;
+    isAdmin?: boolean;
   };
 }
 
@@ -113,6 +115,15 @@ export function AppSidebar({ user }: AppSidebarProps) {
             label="Teams"
             active={pathname === "/app/teams"}
           />
+
+          {user.isAdmin && (
+            <SidebarNavItem
+              href="/app/admin"
+              icon={<ShieldAlert className="h-5 w-5" />}
+              label="Admin"
+              active={pathname === "/app/admin"}
+            />
+          )}
         </SidebarNav>
 
         <SidebarGroup className="mt-8">
