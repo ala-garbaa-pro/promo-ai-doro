@@ -37,6 +37,12 @@ export function KeyboardShortcutsProvider({
       global: true,
     },
     {
+      key: "g+b",
+      description: "Go to cognitive enhancement",
+      action: () => router.push("/app/cognitive-enhancement"),
+      global: true,
+    },
+    {
       key: "g+c",
       description: "Go to calendar",
       action: () => router.push("/app/calendar"),

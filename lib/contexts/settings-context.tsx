@@ -20,6 +20,12 @@ export interface TimerSettings {
     longBreak: string;
   };
   countDirection: "down" | "up";
+  // Cognitive enhancement settings
+  earlyBirdMode: boolean;
+  nightOwlMode: boolean;
+  adaptiveScheduling: boolean;
+  cognitiveLoadOptimization: boolean;
+  contextSwitchingMinimization: boolean;
 }
 
 export interface NotificationSettings {
@@ -40,6 +46,9 @@ export interface NotificationSettings {
     volume: number;
     defaultSound: string;
     autoPlay: boolean;
+    preferBinauralBeats: boolean;
+    showDescriptions: boolean;
+    defaultCategory: string;
   };
 }
 
@@ -89,6 +98,12 @@ export const defaultSettings: AppSettings = {
       longBreak: "Long Break",
     },
     countDirection: "down",
+    // Cognitive enhancement settings
+    earlyBirdMode: false,
+    nightOwlMode: false,
+    adaptiveScheduling: true,
+    cognitiveLoadOptimization: true,
+    contextSwitchingMinimization: true,
   },
   notification: {
     soundEnabled: true,
@@ -108,6 +123,9 @@ export const defaultSettings: AppSettings = {
       volume: 50,
       defaultSound: "rain",
       autoPlay: false,
+      preferBinauralBeats: false,
+      showDescriptions: true,
+      defaultCategory: "nature",
     },
   },
   theme: {
