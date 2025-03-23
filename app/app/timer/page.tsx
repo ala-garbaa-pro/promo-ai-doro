@@ -13,48 +13,56 @@ import {
   VolumeX,
   Settings,
 } from "lucide-react";
+import { useSettings } from "@/lib/contexts/settings-context";
+import { useToast } from "@/components/ui/use-toast";
+import Link from "next/link";
+import {
+  requestNotificationPermission,
+  showNotification,
+  playSound,
+} from "@/lib/utils/notifications";
 
 // Timer modes
 type TimerMode = "pomodoro" | "shortBreak" | "longBreak";
 
-// Default timer durations in seconds
-const DEFAULT_DURATIONS = {
-  pomodoro: 25 * 60,
-  shortBreak: 5 * 60,
-  longBreak: 15 * 60,
-};
+// Get timer durations from settings
+const getTimerDurations = (settings: any) => ({
+  pomodoro: settings.timer.pomodoroDuration * 60,
+  shortBreak: settings.timer.shortBreakDuration * 60,
+  longBreak: settings.timer.longBreakDuration * 60,
+});
 
 export default function TimerPage() {
+  const { settings } = useSettings();
+  const { toast } = useToast();
+  const timerDurations = getTimerDurations(settings);
+
+  // Request notification permission on component mount
+  useEffect(() => {
+    if (settings.notification.desktopNotificationsEnabled) {
+      requestNotificationPermission();
+    }
+  }, [settings.notification.desktopNotificationsEnabled]);
+
   // Timer state
   const [mode, setMode] = useState<TimerMode>("pomodoro");
-  const [timeLeft, setTimeLeft] = useState(DEFAULT_DURATIONS[mode]);
+  const [timeLeft, setTimeLeft] = useState(timerDurations[mode]);
   const [isRunning, setIsRunning] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(!settings.notification.soundEnabled);
   const [completedPomodoros, setCompletedPomodoros] = useState(0);
 
   // Refs
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Initialize audio
+  // Reset timer when mode changes or settings change
   useEffect(() => {
-    audioRef.current = new Audio("/sounds/bell.mp3");
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-    };
-  }, []);
-
-  // Reset timer when mode changes
-  useEffect(() => {
-    setTimeLeft(DEFAULT_DURATIONS[mode]);
+    setTimeLeft(timerDurations[mode]);
     setIsRunning(false);
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
-  }, [mode]);
+  }, [mode, timerDurations]);
 
   // Timer logic
   useEffect(() => {
@@ -66,14 +74,52 @@ export default function TimerPage() {
             clearInterval(timerRef.current!);
             setIsRunning(false);
 
-            // Play sound if not muted
-            if (!isMuted && audioRef.current) {
-              audioRef.current.play().catch(console.error);
+            // Play sound if not muted and sound is enabled
+            if (!isMuted && settings.notification.soundEnabled) {
+              const soundFile = `/sounds/${
+                settings.notification.notificationSound || "bell"
+              }.mp3`;
+              playSound(soundFile, settings.notification.volume / 100);
+            }
+
+            // Show desktop notification if enabled
+            if (settings.notification.desktopNotificationsEnabled) {
+              showNotification("Pomo AI-doro", {
+                body:
+                  mode === "pomodoro"
+                    ? "Pomodoro completed! Time for a break."
+                    : "Break completed! Ready to focus again?",
+                icon: "/favicon.ico",
+              });
             }
 
             // Update completed pomodoros count
             if (mode === "pomodoro") {
               setCompletedPomodoros((prev) => prev + 1);
+
+              // Auto-start break if enabled in settings
+              if (settings.timer.autoStartBreaks) {
+                // After 4 pomodoros (or the configured interval), take a long break
+                if (
+                  (completedPomodoros + 1) %
+                    settings.timer.longBreakInterval ===
+                  0
+                ) {
+                  setMode("longBreak");
+                } else {
+                  setMode("shortBreak");
+                }
+                // Auto-start the break timer
+                setTimeout(() => setIsRunning(true), 500);
+              }
+            } else if (
+              settings.timer.autoStartPomodoros &&
+              mode !== "pomodoro"
+            ) {
+              // Auto-start pomodoro if enabled in settings and we're coming from a break
+              setMode("pomodoro");
+              // Auto-start the pomodoro timer
+              setTimeout(() => setIsRunning(true), 500);
             }
 
             return 0;
@@ -104,7 +150,7 @@ export default function TimerPage() {
   };
 
   // Calculate progress percentage
-  const progressPercentage = (timeLeft / DEFAULT_DURATIONS[mode]) * 100;
+  const progressPercentage = (timeLeft / timerDurations[mode]) * 100;
 
   // Handle start/pause
   const toggleTimer = () => {
@@ -114,7 +160,7 @@ export default function TimerPage() {
   // Handle reset
   const resetTimer = () => {
     setIsRunning(false);
-    setTimeLeft(DEFAULT_DURATIONS[mode]);
+    setTimeLeft(timerDurations[mode]);
   };
 
   // Handle skip
@@ -123,8 +169,8 @@ export default function TimerPage() {
 
     // Determine next mode
     if (mode === "pomodoro") {
-      // After 4 pomodoros, take a long break
-      if ((completedPomodoros + 1) % 4 === 0) {
+      // After configured number of pomodoros, take a long break
+      if ((completedPomodoros + 1) % settings.timer.longBreakInterval === 0) {
         setMode("longBreak");
       } else {
         setMode("shortBreak");
@@ -137,6 +183,12 @@ export default function TimerPage() {
   // Toggle sound
   const toggleSound = () => {
     setIsMuted((prev) => !prev);
+    toast({
+      title: isMuted ? "Sound Enabled" : "Sound Disabled",
+      description: isMuted
+        ? "You will now hear notifications when timers end."
+        : "You will no longer hear notifications when timers end.",
+    });
   };
 
   // Get background color based on mode
@@ -240,9 +292,12 @@ export default function TimerPage() {
             variant="outline"
             size="sm"
             className="border-gray-700 text-gray-400 hover:text-white"
+            asChild
           >
-            <Settings className="h-4 w-4 mr-1" />
-            Settings
+            <Link href="/app/settings">
+              <Settings className="h-4 w-4 mr-1" />
+              Settings
+            </Link>
           </Button>
         </div>
 

@@ -5,6 +5,7 @@ import { AuthProvider } from "@/components/auth/auth-provider";
 import LayoutWrapper from "@/components/app/layout-wrapper";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
+import { SettingsProvider } from "@/lib/contexts/settings-context";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -52,8 +53,10 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <LayoutWrapper>{children}</LayoutWrapper>
-            <Toaster />
+            <SettingsProvider>
+              <LayoutWrapper>{children}</LayoutWrapper>
+              <Toaster />
+            </SettingsProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

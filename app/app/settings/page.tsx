@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useTheme } from "next-themes";
 import {
   Card,
@@ -44,89 +43,58 @@ import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/components/auth/auth-provider";
 import { Toaster } from "@/components/ui/toaster";
+import { useSettings } from "@/lib/contexts/settings-context";
 
 export default function SettingsPage() {
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
   const { user } = useAuth();
-
-  // Timer settings
-  const [timerSettings, setTimerSettings] = useState({
-    pomodoroDuration: 25,
-    shortBreakDuration: 5,
-    longBreakDuration: 15,
-    autoStartBreaks: false,
-    autoStartPomodoros: false,
-    longBreakInterval: 4,
-  });
-
-  // Notification settings
-  const [notificationSettings, setNotificationSettings] = useState({
-    soundEnabled: true,
-    desktopNotificationsEnabled: true,
-    volume: 80,
-    notificationSound: "bell",
-  });
-
-  // Theme settings
-  const [themeSettings, setThemeSettings] = useState({
-    fontSize: "medium",
-    accentColor: "indigo",
-  });
+  const {
+    settings,
+    updateTimerSettings,
+    updateNotificationSettings,
+    updateThemeSettings,
+    resetSettings,
+    saveSettings,
+    hasUnsavedChanges,
+  } = useSettings();
 
   // Handle timer settings change
   const handleTimerSettingChange = (
-    key: keyof typeof timerSettings,
+    key: keyof typeof settings.timer,
     value: number | boolean
   ) => {
-    setTimerSettings((prev) => ({ ...prev, [key]: value }));
+    updateTimerSettings({ [key]: value });
   };
 
   // Handle notification settings change
   const handleNotificationSettingChange = (
-    key: keyof typeof notificationSettings,
+    key: keyof typeof settings.notification,
     value: string | boolean | number
   ) => {
-    setNotificationSettings((prev) => ({ ...prev, [key]: value }));
+    updateNotificationSettings({ [key]: value });
   };
 
   // Handle theme settings change
   const handleThemeSettingChange = (
-    key: keyof typeof themeSettings,
+    key: keyof typeof settings.theme,
     value: string
   ) => {
-    setThemeSettings((prev) => ({ ...prev, [key]: value }));
+    updateThemeSettings({ [key]: value as any });
   };
 
-  // Save settings
-  const saveSettings = () => {
-    // In a real app, this would save to a database or local storage
+  // Handle save settings
+  const handleSaveSettings = () => {
+    saveSettings();
     toast({
       title: "Settings saved",
       description: "Your settings have been saved successfully.",
     });
   };
 
-  // Reset settings
-  const resetSettings = () => {
-    setTimerSettings({
-      pomodoroDuration: 25,
-      shortBreakDuration: 5,
-      longBreakDuration: 15,
-      autoStartBreaks: false,
-      autoStartPomodoros: false,
-      longBreakInterval: 4,
-    });
-    setNotificationSettings({
-      soundEnabled: true,
-      desktopNotificationsEnabled: true,
-      volume: 80,
-      notificationSound: "bell",
-    });
-    setThemeSettings({
-      fontSize: "medium",
-      accentColor: "indigo",
-    });
+  // Handle reset settings
+  const handleResetSettings = () => {
+    resetSettings();
     toast({
       title: "Settings reset",
       description: "Your settings have been reset to default values.",
@@ -146,15 +114,15 @@ export default function SettingsPage() {
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
-            onClick={resetSettings}
+            onClick={handleResetSettings}
             className="border-border text-muted-foreground hover:text-foreground"
           >
             <RotateCcw className="h-4 w-4 mr-2" />
             Reset
           </Button>
-          <Button onClick={saveSettings}>
+          <Button onClick={handleSaveSettings} disabled={!hasUnsavedChanges}>
             <Save className="h-4 w-4 mr-2" />
-            Save Changes
+            {hasUnsavedChanges ? "Save Changes" : "Saved"}
           </Button>
         </div>
       </div>
@@ -206,7 +174,7 @@ export default function SettingsPage() {
                     type="number"
                     min="1"
                     max="60"
-                    value={timerSettings.pomodoroDuration}
+                    value={settings.timer.pomodoroDuration}
                     onChange={(e) =>
                       handleTimerSettingChange(
                         "pomodoroDuration",
@@ -224,7 +192,7 @@ export default function SettingsPage() {
                     type="number"
                     min="1"
                     max="30"
-                    value={timerSettings.shortBreakDuration}
+                    value={settings.timer.shortBreakDuration}
                     onChange={(e) =>
                       handleTimerSettingChange(
                         "shortBreakDuration",
@@ -242,7 +210,7 @@ export default function SettingsPage() {
                     type="number"
                     min="1"
                     max="60"
-                    value={timerSettings.longBreakDuration}
+                    value={settings.timer.longBreakDuration}
                     onChange={(e) =>
                       handleTimerSettingChange(
                         "longBreakDuration",
@@ -264,7 +232,7 @@ export default function SettingsPage() {
                   type="number"
                   min="1"
                   max="10"
-                  value={timerSettings.longBreakInterval}
+                  value={settings.timer.longBreakInterval}
                   onChange={(e) =>
                     handleTimerSettingChange(
                       "longBreakInterval",
@@ -289,7 +257,7 @@ export default function SettingsPage() {
                   </div>
                   <Switch
                     id="autoStartBreaks"
-                    checked={timerSettings.autoStartBreaks}
+                    checked={settings.timer.autoStartBreaks}
                     onCheckedChange={(checked) =>
                       handleTimerSettingChange("autoStartBreaks", checked)
                     }
@@ -307,7 +275,7 @@ export default function SettingsPage() {
                   </div>
                   <Switch
                     id="autoStartPomodoros"
-                    checked={timerSettings.autoStartPomodoros}
+                    checked={settings.timer.autoStartPomodoros}
                     onCheckedChange={(checked) =>
                       handleTimerSettingChange("autoStartPomodoros", checked)
                     }
@@ -338,7 +306,7 @@ export default function SettingsPage() {
                   </div>
                   <Switch
                     id="soundEnabled"
-                    checked={notificationSettings.soundEnabled}
+                    checked={settings.notification.soundEnabled}
                     onCheckedChange={(checked) =>
                       handleNotificationSettingChange("soundEnabled", checked)
                     }
@@ -356,7 +324,7 @@ export default function SettingsPage() {
                   </div>
                   <Switch
                     id="desktopNotificationsEnabled"
-                    checked={notificationSettings.desktopNotificationsEnabled}
+                    checked={settings.notification.desktopNotificationsEnabled}
                     onCheckedChange={(checked) =>
                       handleNotificationSettingChange(
                         "desktopNotificationsEnabled",
@@ -373,18 +341,18 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <Label htmlFor="volume">Notification Volume</Label>
                   <span className="text-sm text-muted-foreground">
-                    {notificationSettings.volume}%
+                    {settings.notification.volume}%
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Volume2 className="h-4 w-4 text-muted-foreground" />
                   <Slider
                     id="volume"
-                    disabled={!notificationSettings.soundEnabled}
+                    disabled={!settings.notification.soundEnabled}
                     min={0}
                     max={100}
                     step={1}
-                    value={[notificationSettings.volume]}
+                    value={[settings.notification.volume]}
                     onValueChange={(value) =>
                       handleNotificationSettingChange("volume", value[0])
                     }
@@ -398,8 +366,8 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <Label htmlFor="notificationSound">Notification Sound</Label>
                 <Select
-                  disabled={!notificationSettings.soundEnabled}
-                  value={notificationSettings.notificationSound}
+                  disabled={!settings.notification.soundEnabled}
+                  value={settings.notification.notificationSound}
                   onValueChange={(value) =>
                     handleNotificationSettingChange("notificationSound", value)
                   }
@@ -419,12 +387,12 @@ export default function SettingsPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    disabled={!notificationSettings.soundEnabled}
+                    disabled={!settings.notification.soundEnabled}
                     onClick={() => {
                       // In a real app, this would play the selected sound
                       toast({
                         title: "Sound Preview",
-                        description: `Playing ${notificationSettings.notificationSound} sound.`,
+                        description: `Playing ${settings.notification.notificationSound} sound.`,
                       });
                     }}
                   >
@@ -491,7 +459,7 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <Label htmlFor="accentColor">Accent Color</Label>
                 <Select
-                  value={themeSettings.accentColor}
+                  value={settings.theme.accentColor}
                   onValueChange={(value) =>
                     handleThemeSettingChange("accentColor", value)
                   }
@@ -518,7 +486,7 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <Label htmlFor="fontSize">Font Size</Label>
                 <Select
-                  value={themeSettings.fontSize}
+                  value={settings.theme.fontSize}
                   onValueChange={(value) =>
                     handleThemeSettingChange("fontSize", value)
                   }
