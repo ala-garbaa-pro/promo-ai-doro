@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -7,34 +10,108 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, ChevronDown } from "lucide-react";
+import {
+  Calendar,
+  ChevronDown,
+  Clock,
+  CheckCircle,
+  ListChecks,
+  TrendingUp,
+  Loader2,
+  AlertCircle
+} from "lucide-react";
+import { useAuth } from "@/components/auth/auth-provider";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
 
 export default function AnalyticsPage() {
+  const { user, isAuthenticated } = useAuth();
+  const [timeRange, setTimeRange] = useState<"week" | "month" | "year">("month");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [analytics, setAnalytics] = useState<any>(null);
+
+  // Fetch analytics data
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      if (!isAuthenticated) return;
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        // Calculate date range
+        const now = new Date();
+        let endpoint = "/api/analytics/monthly";
+
+        if (timeRange === "week") {
+          endpoint = "/api/analytics/weekly";
+        } else if (timeRange === "year") {
+          endpoint = "/api/analytics/yearly";
+        }
+
+        const response = await fetch(`${endpoint}?date=${now.toISOString()}`);
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch analytics data");
+        }
+
+        const data = await response.json();
+        setAnalytics(data);
+      } catch (err) {
+        console.error("Error fetching analytics:", err);
+        setError("Failed to load analytics data. Please try again later.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAnalytics();
+  }, [isAuthenticated, timeRange]);
+
+  // Format minutes to hours and minutes
+  const formatMinutes = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}h ${mins}m`;
+  };
+
   return (
     <div className="container mx-auto p-6">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white">Analytics</h1>
-          <p className="text-gray-400 mt-1">
+          <h1 className="text-3xl font-bold">Analytics</h1>
+          <p className="text-muted-foreground mt-1">
             Track your productivity metrics and insights
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-gray-700 text-gray-400 hover:text-white"
-          >
-            <Calendar className="h-4 w-4 mr-1" />
-            This Month
-            <ChevronDown className="h-4 w-4 ml-1" />
-          </Button>
+          <Tabs value={timeRange} onValueChange={(v) => setTimeRange(v as any)} className="w-auto">
+            <TabsList>
+              <TabsTrigger value="week">Week</TabsTrigger>
+              <TabsTrigger value="month">Month</TabsTrigger>
+              <TabsTrigger value="year">Year</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
       </div>
 
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="w-full bg-gray-800 mb-6">
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 text-primary animate-spin mb-4" />
+          <p className="text-muted-foreground">Loading analytics data...</p>
+        </div>
+      ) : (
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="w-full mb-6">
           <TabsTrigger value="overview" className="flex-1">
             Overview
           </TabsTrigger>
@@ -53,79 +130,113 @@ export default function AnalyticsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <MetricCard
               title="Total Focus Time"
-              value="0h 0m"
-              description="This month"
-              color="bg-indigo-500/10 text-indigo-400"
+              value={analytics ? formatMinutes(analytics.totalWorkMinutes || 0) : "0h 0m"}
+              description={`This ${timeRange}`}
+              icon={<Clock className="h-5 w-5" />}
+              color="bg-primary/10 text-primary"
             />
             <MetricCard
               title="Completed Sessions"
-              value="0"
-              description="This month"
-              color="bg-green-500/10 text-green-400"
+              value={analytics ? (analytics.completedWorkSessions || 0).toString() : "0"}
+              description={`This ${timeRange}`}
+              icon={<CheckCircle className="h-5 w-5" />}
+              color="bg-green-500/10 text-green-500"
             />
             <MetricCard
               title="Completed Tasks"
-              value="0"
-              description="This month"
-              color="bg-purple-500/10 text-purple-400"
+              value={analytics ? (analytics.completedTasks || 0).toString() : "0"}
+              description={`This ${timeRange}`}
+              icon={<ListChecks className="h-5 w-5" />}
+              color="bg-purple-500/10 text-purple-500"
             />
             <MetricCard
               title="Average Focus Score"
-              value="--"
-              description="This month"
-              color="bg-blue-500/10 text-blue-400"
+              value={analytics && analytics.avgFocusScore ? analytics.avgFocusScore.toString() : "--"}
+              description={`This ${timeRange}`}
+              icon={<TrendingUp className="h-5 w-5" />}
+              color="bg-blue-500/10 text-blue-500"
             />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <Card className="bg-gray-800 border-gray-700">
+            <Card>
               <CardHeader>
-                <CardTitle className="text-white">Daily Focus Time</CardTitle>
-                <CardDescription className="text-gray-400">
+                <CardTitle>Daily Focus Time</CardTitle>
+                <CardDescription>
                   Hours spent focusing each day
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-[300px] flex items-center justify-center">
-                  <p className="text-gray-400">No data available yet</p>
+                  {analytics && analytics.dailyAnalytics && analytics.dailyAnalytics.length > 0 ? (
+                    <div className="w-full h-full">
+                      {/* Chart would go here */}
+                      <div className="flex items-center justify-center h-full">
+                        <p className="text-muted-foreground">Chart visualization coming soon</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">No data available yet</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gray-800 border-gray-700">
+            <Card>
               <CardHeader>
-                <CardTitle className="text-white">Task Completion</CardTitle>
-                <CardDescription className="text-gray-400">
+                <CardTitle>Task Completion</CardTitle>
+                <CardDescription>
                   Tasks completed over time
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-[300px] flex items-center justify-center">
-                  <p className="text-gray-400">No data available yet</p>
+                  {analytics && analytics.dailyAnalytics && analytics.dailyAnalytics.length > 0 ? (
+                    <div className="w-full h-full">
+                      {/* Chart would go here */}
+                      <div className="flex items-center justify-center h-full">
+                        <p className="text-muted-foreground">Chart visualization coming soon</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">No data available yet</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          <Card className="bg-gray-800 border-gray-700">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-white">
+              <CardTitle>
                 AI Productivity Insights
               </CardTitle>
-              <CardDescription className="text-gray-400">
+              <CardDescription>
                 Personalized recommendations based on your work patterns
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4 text-gray-300">
-                <div className="rounded-lg bg-gray-700/30 p-4 border border-gray-700">
+              <div className="space-y-4">
+                {analytics && analytics.totalWorkSessions > 5 ? (
+                  <div className="rounded-lg bg-primary/5 p-4 border border-primary/10">
+                    <p className="text-sm">
+                      Based on your work patterns, you seem to be most productive between
+                      {analytics.mostProductiveTimeStart ?
+                        ` ${format(new Date(analytics.mostProductiveTimeStart), 'h:mm a')} and ${format(new Date(analytics.mostProductiveTimeEnd), 'h:mm a')}` :
+                        " 9:00 AM and 11:00 AM"}.
+                      Consider scheduling your most important tasks during this time window.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="rounded-lg bg-muted p-4 border">
+                    <p className="text-sm">
+                      Complete more focus sessions to receive personalized AI
+                      insights about your productivity patterns.
+                    </p>
+                  </div>
+                )}
+                <div className="rounded-lg bg-blue-500/5 p-4 border border-blue-500/10">
                   <p className="text-sm">
-                    Complete more focus sessions to receive personalized AI
-                    insights about your productivity patterns.
-                  </p>
-                </div>
-                <div className="rounded-lg bg-indigo-900/20 p-4 border border-indigo-800/30">
-                  <p className="text-sm text-indigo-200">
                     <span className="font-medium">Did you know?</span> Research
                     shows that most people are most productive in the morning,
                     with peak focus occurring between 9am and 11am.
@@ -137,37 +248,74 @@ export default function AnalyticsPage() {
         </TabsContent>
 
         <TabsContent value="focus">
-          <Card className="bg-gray-800 border-gray-700">
+          <Card>
             <CardContent className="p-6 text-center">
-              <p className="text-gray-400">
-                Focus time analytics will be available after you complete your
-                first focus session
-              </p>
+              {analytics && analytics.totalWorkSessions > 0 ? (
+                <div className="py-12">
+                  <p className="text-muted-foreground mb-4">
+                    Focus time analytics visualization coming soon
+                  </p>
+                  <Button variant="outline">
+                    <Clock className="h-4 w-4 mr-2" />
+                    View Detailed Focus Report
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-muted-foreground">
+                  Focus time analytics will be available after you complete your
+                  first focus session
+                </p>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="tasks">
-          <Card className="bg-gray-800 border-gray-700">
+          <Card>
             <CardContent className="p-6 text-center">
-              <p className="text-gray-400">
-                Task analytics will be available after you complete your first
-                task
-              </p>
+              {analytics && analytics.completedTasks > 0 ? (
+                <div className="py-12">
+                  <p className="text-muted-foreground mb-4">
+                    Task analytics visualization coming soon
+                  </p>
+                  <Button variant="outline">
+                    <ListChecks className="h-4 w-4 mr-2" />
+                    View Detailed Task Report
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-muted-foreground">
+                  Task analytics will be available after you complete your first
+                  task
+                </p>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="trends">
-          <Card className="bg-gray-800 border-gray-700">
+          <Card>
             <CardContent className="p-6 text-center">
-              <p className="text-gray-400">
-                Trend analytics will be available after you use the app for a
-                while
-              </p>
+              {analytics && (analytics.totalWorkSessions > 10 || analytics.completedTasks > 10) ? (
+                <div className="py-12">
+                  <p className="text-muted-foreground mb-4">
+                    Trend analytics visualization coming soon
+                  </p>
+                  <Button variant="outline">
+                    <TrendingUp className="h-4 w-4 mr-2" />
+                    View Detailed Trends Report
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-muted-foreground">
+                  Trend analytics will be available after you use the app for a
+                  while
+                </p>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
+      )}
       </Tabs>
     </div>
   );
@@ -179,22 +327,23 @@ interface MetricCardProps {
   value: string;
   description: string;
   color: string;
+  icon: React.ReactNode;
 }
 
-function MetricCard({ title, value, description, color }: MetricCardProps) {
+function MetricCard({ title, value, description, color, icon }: MetricCardProps) {
   return (
-    <Card className="bg-gray-800 border-gray-700">
+    <Card>
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-gray-400 mb-1">{title}</p>
-            <p className="text-2xl font-bold text-white">{value}</p>
-            <p className="text-xs text-gray-500 mt-1">{description}</p>
+            <p className="text-muted-foreground mb-1">{title}</p>
+            <p className="text-2xl font-bold">{value}</p>
+            <p className="text-xs text-muted-foreground mt-1">{description}</p>
           </div>
           <div
             className={`h-10 w-10 rounded-full ${color} flex items-center justify-center`}
           >
-            <div className="h-5 w-5" />
+            {icon}
           </div>
         </div>
       </CardContent>

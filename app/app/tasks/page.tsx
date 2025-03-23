@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,8 @@ import {
   Tag,
   Flag,
   Trash2,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -23,102 +25,51 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-// Task priority types
-type TaskPriority = "low" | "medium" | "high";
-
-// Task status types
-type TaskStatus = "pending" | "in_progress" | "completed";
-
-// Task interface
-interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  priority: TaskPriority;
-  status: TaskStatus;
-  estimatedPomodoros?: number;
-  dueDate?: Date;
-  category?: string;
-  tags?: string[];
-}
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useTasks, Task, TaskPriority, TaskStatus } from "@/hooks/use-tasks";
 
 export default function TasksPage() {
-  // Sample tasks
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: "1",
-      title: "Complete project proposal",
-      description: "Write and review the project proposal document",
-      priority: "high",
-      status: "pending",
-      estimatedPomodoros: 4,
-      category: "Work",
-      tags: ["project", "writing"],
-    },
-    {
-      id: "2",
-      title: "Research new features",
-      description: "Look into potential new features for the app",
-      priority: "medium",
-      status: "in_progress",
-      estimatedPomodoros: 2,
-      category: "Development",
-      tags: ["research"],
-    },
-    {
-      id: "3",
-      title: "Review documentation",
-      description: "Go through the existing documentation and update as needed",
-      priority: "low",
-      status: "completed",
-      estimatedPomodoros: 3,
-      category: "Documentation",
-      tags: ["review"],
-    },
-  ]);
+  // Use the tasks hook
+  const { tasks, isLoading, error, createTask, updateTaskStatus, deleteTask } =
+    useTasks();
 
   // New task input
   const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
 
   // Add new task
-  const handleAddTask = () => {
-    if (newTaskTitle.trim() === "") return;
+  const handleAddTask = async () => {
+    if (newTaskTitle.trim() === "" || isCreating) return;
 
-    const newTask: Task = {
-      id: Date.now().toString(),
-      title: newTaskTitle,
-      priority: "medium",
-      status: "pending",
-      estimatedPomodoros: 1,
-    };
+    setIsCreating(true);
 
-    setTasks([...tasks, newTask]);
-    setNewTaskTitle("");
+    try {
+      await createTask({
+        title: newTaskTitle,
+        priority: "medium",
+        status: "pending",
+        estimatedPomodoros: 1,
+      });
+
+      setNewTaskTitle("");
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   // Toggle task status
-  const toggleTaskStatus = (taskId: string) => {
-    setTasks(
-      tasks.map((task) => {
-        if (task.id === taskId) {
-          const newStatus: TaskStatus =
-            task.status === "pending"
-              ? "in_progress"
-              : task.status === "in_progress"
-              ? "completed"
-              : "pending";
+  const toggleTaskStatus = async (
+    taskId: string,
+    currentStatus: TaskStatus
+  ) => {
+    const newStatus: TaskStatus =
+      currentStatus === "pending"
+        ? "in_progress"
+        : currentStatus === "in_progress"
+        ? "completed"
+        : "pending";
 
-          return { ...task, status: newStatus };
-        }
-        return task;
-      })
-    );
-  };
-
-  // Delete task
-  const deleteTask = (taskId: string) => {
-    setTasks(tasks.filter((task) => task.id !== taskId));
+    await updateTaskStatus(taskId, newStatus);
   };
 
   // Get priority color
@@ -152,15 +103,32 @@ export default function TasksPage() {
   const inProgressTasks = tasks.filter((task) => task.status === "in_progress");
   const completedTasks = tasks.filter((task) => task.status === "completed");
 
+  // Loading and error states
+  if (isLoading && tasks.length === 0) {
+    return (
+      <div className="container mx-auto p-6 flex flex-col items-center justify-center min-h-[50vh]">
+        <Loader2 className="h-8 w-8 text-primary animate-spin mb-4" />
+        <p className="text-muted-foreground">Loading tasks...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-6">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold text-white">Tasks</h1>
-        <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
+        <h1 className="text-3xl font-bold">Tasks</h1>
+        <Button>
           <Plus className="h-4 w-4 mr-2" />
           New Task
         </Button>
       </div>
+
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
       <div className="mb-8">
         <div className="flex gap-2">
@@ -169,24 +137,28 @@ export default function TasksPage() {
             placeholder="Add a new task..."
             value={newTaskTitle}
             onChange={(e) => setNewTaskTitle(e.target.value)}
-            className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus-visible:ring-indigo-500"
+            className="focus-visible:ring-primary"
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 handleAddTask();
               }
             }}
           />
-          <Button
-            onClick={handleAddTask}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white"
-          >
-            Add
+          <Button onClick={handleAddTask} disabled={isCreating} className="">
+            {isCreating ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Adding...
+              </>
+            ) : (
+              "Add"
+            )}
           </Button>
         </div>
       </div>
 
       <Tabs defaultValue="all" className="w-full">
-        <TabsList className="w-full bg-gray-800 mb-6">
+        <TabsList className="w-full mb-6">
           <TabsTrigger value="all" className="flex-1">
             All ({tasks.length})
           </TabsTrigger>
@@ -263,26 +235,26 @@ function TaskList({
 }: TaskListProps) {
   if (tasks.length === 0) {
     return (
-      <Card className="bg-gray-800 border-gray-700">
+      <Card>
         <CardContent className="p-6 text-center">
-          <p className="text-gray-400">No tasks found</p>
+          <p className="text-muted-foreground">No tasks found</p>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="bg-gray-800 border-gray-700">
+    <Card>
       <CardContent className="p-0">
-        <ul className="divide-y divide-gray-700">
+        <ul className="divide-y">
           {tasks.map((task) => (
             <li
               key={task.id}
-              className="p-4 hover:bg-gray-700/50 transition-colors"
+              className="p-4 hover:bg-accent/50 transition-colors"
             >
               <div className="flex items-start gap-3">
                 <button
-                  onClick={() => toggleTaskStatus(task.id)}
+                  onClick={() => toggleTaskStatus(task.id, task.status)}
                   className="mt-1 flex-shrink-0"
                 >
                   {getStatusIcon(task.status)}
@@ -293,8 +265,8 @@ function TaskList({
                     <h3
                       className={`text-base font-medium ${
                         task.status === "completed"
-                          ? "text-gray-400 line-through"
-                          : "text-white"
+                          ? "text-muted-foreground line-through"
+                          : "text-foreground"
                       }`}
                     >
                       {task.title}
@@ -310,12 +282,12 @@ function TaskList({
                   </div>
 
                   {task.description && (
-                    <p className="text-sm text-gray-400 mt-1 truncate">
+                    <p className="text-sm text-muted-foreground mt-1 truncate">
                       {task.description}
                     </p>
                   )}
 
-                  <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
+                  <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                     {task.estimatedPomodoros && (
                       <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
@@ -337,16 +309,13 @@ function TaskList({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-gray-400 hover:text-white"
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
                     >
                       <MoreVertical className="h-4 w-4" />
                       <span className="sr-only">Task options</span>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="end"
-                    className="w-48 bg-gray-800 border-gray-700 text-white"
-                  >
+                  <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuItem className="cursor-pointer">
                       <Clock className="h-4 w-4 mr-2" />
                       Start Timer
@@ -359,7 +328,7 @@ function TaskList({
                       <Calendar className="h-4 w-4 mr-2" />
                       Set Due Date
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator className="bg-gray-700" />
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem
                       className="cursor-pointer text-red-500 focus:text-red-500"
                       onClick={() => deleteTask(task.id)}
