@@ -1,5 +1,6 @@
-import { getCurrentUser } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth/better-auth";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app/sidebar";
 import { AppHeader } from "@/components/app/header";
@@ -10,9 +11,15 @@ export default async function AppLayout({
   children: React.ReactNode;
 }) {
   // Verify user is authenticated, redirect to login if not
-  const user = await getCurrentUser().catch(() => {
-    redirect("/auth/login");
+  const session = await auth.api.getSession({
+    headers: await headers(),
   });
+
+  if (!session) {
+    redirect("/auth/login");
+  }
+
+  const user = session.user;
 
   return (
     <div className="flex h-screen overflow-hidden bg-background text-foreground">

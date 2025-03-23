@@ -1,9 +1,17 @@
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/auth/session";
+import { auth } from "@/lib/auth/better-auth";
+import { headers } from "next/headers";
 
 export default async function DashboardPage() {
-  // This will redirect to login if not authenticated
-  await getCurrentUser();
+  // Get the session using better-auth
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  // If not authenticated, middleware will handle the redirect
+  if (!session) {
+    redirect("/auth/login");
+  }
 
   // Redirect to the new app interface
   redirect("/app");

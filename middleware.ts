@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
-
-// Secret key for JWT verification
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+import { getSessionCookie } from "better-auth/cookies";
 
 // Define protected routes that require authentication
-const protectedRoutes = ["/dashboard", "/settings", "/profile"];
+const protectedRoutes = ["/dashboard", "/settings", "/profile", "/app"];
 
 // Define auth routes (login, register, etc.)
 const authRoutes = ["/auth/login", "/auth/register"];
@@ -23,37 +20,21 @@ export async function middleware(request: NextRequest) {
     (route) => pathname === route || pathname.startsWith(`${route}/`)
   );
 
-  // Get the session token from cookies
-  const sessionToken = request.cookies.get("session")?.value;
-
-  // Verify session function
-  const verifySession = async () => {
-    if (!sessionToken) return null;
-
-    try {
-      const { payload } = await jwtVerify(
-        sessionToken,
-        new TextEncoder().encode(JWT_SECRET)
-      );
-      return payload;
-    } catch (error) {
-      console.error("Token verification failed:", error);
-      return null;
-    }
-  };
-
-  // Get user session
-  const session = await verifySession();
+  // Get the session cookie using better-auth helper
+  const sessionCookie = getSessionCookie(request, {
+    cookieName: "pomo_session", // Match the name in auth.ts
+    useSecureCookies: process.env.NODE_ENV === "production",
+  });
 
   // Redirect unauthenticated users from protected routes to login
-  if (isProtectedRoute && !session) {
+  if (isProtectedRoute && !sessionCookie) {
     const url = new URL("/auth/login", request.url);
     url.searchParams.set("callbackUrl", encodeURI(pathname));
     return NextResponse.redirect(url);
   }
 
   // Redirect authenticated users from auth routes to dashboard
-  if (isAuthRoute && session) {
+  if (isAuthRoute && sessionCookie) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 

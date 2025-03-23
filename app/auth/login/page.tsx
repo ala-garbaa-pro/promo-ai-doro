@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { EyeIcon, EyeOffIcon, LoaderCircle } from "lucide-react";
+import { signIn } from "@/lib/auth/better-auth-client";
 
 // Form validation schema
 const loginSchema = z.object({
@@ -30,6 +31,10 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const registered = searchParams.get("registered") === "true";
+
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: "",
@@ -39,7 +44,9 @@ export default function LoginPage() {
   >({});
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
+  const [authError, setAuthError] = useState<string | null>(
+    registered ? null : null
+  );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -86,26 +93,29 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // This would be replaced with your actual authentication logic
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      // Use better-auth signIn method
+      const { error } = await signIn.email(
+        {
+          email: formData.email,
+          password: formData.password,
+          callbackURL: callbackUrl,
+          rememberMe: true,
+        },
+        {
+          onSuccess: () => {
+            // Redirect is handled automatically by better-auth
+          },
+        }
+      );
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || "Login failed");
+      if (error) {
+        throw new Error(error.message || "Login failed");
       }
-
-      // Redirect to dashboard on successful login
-      router.push("/dashboard");
     } catch (error) {
       console.error("Login error:", error);
       setAuthError(
         error instanceof Error ? error.message : "An unexpected error occurred"
       );
-    } finally {
       setIsLoading(false);
     }
   };
@@ -122,6 +132,13 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {registered && (
+            <Alert className="mb-4 bg-green-50 text-green-800 border-green-200">
+              <AlertDescription>
+                Registration successful! Please log in with your credentials.
+              </AlertDescription>
+            </Alert>
+          )}
           {authError && (
             <Alert variant="destructive" className="mb-4">
               <AlertDescription>{authError}</AlertDescription>

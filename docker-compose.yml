@@ -1,22 +1,22 @@
 # DON'T EDIT THIS FILE. This an auto generated docker-compose.yml file from db.sh    
 services:
 
-  sma_db_cntr:
-    container_name: sma_db_cntr
+  pad_db_cntr:
+    container_name: pad_db_cntr
     image: postgres:17.2-alpine3.21
     restart: unless-stopped
     ports:
-      - "35330:35330"
-    command: -p 35330
+      - "4001:4001"
+    command: -p 4001
     environment:
-      POSTGRES_DB: sma_db
-      POSTGRES_USER: sma_user
-      POSTGRES_PASSWORD: dgdsjgdsjngdsgljsjn
+      POSTGRES_DB: pad_db
+      POSTGRES_USER: pad_user
+      POSTGRES_PASSWORD: dsgsdgsdg
     volumes:
-      - vol_sma_db:/var/lib/postgresql/data
+      - vol_pad_db:/var/lib/postgresql/data
       - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
 
 volumes:
-  vol_sma_db:
-    name: vol_sma_db
+  vol_pad_db:
+    name: vol_pad_db
 

@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Bell, Search, Plus, Menu, X } from "lucide-react";
+import { Bell, Search, Plus, Menu, X, Sun, Moon } from "lucide-react";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { useTheme } from "next-themes";
+import { cn } from "@/lib/utils";
 
 interface AppHeaderProps {
   user: {
@@ -33,7 +35,7 @@ export function AppHeader({ user }: AppHeaderProps) {
   };
 
   return (
-    <header className="border-b border-border bg-card/80 backdrop-blur-sm">
+    <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10">
       <div className="flex h-16 items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-4">
           <Button

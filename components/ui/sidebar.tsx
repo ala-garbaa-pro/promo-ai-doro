@@ -362,8 +362,11 @@ export function SidebarNavItem({
     <a
       href={disabled ? "#" : href}
       className={cn(
-        "group flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
-        active && "bg-accent text-accent-foreground",
+        "group flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-all",
+        "hover:bg-accent/50 hover:text-foreground",
+        active
+          ? "bg-accent/70 text-foreground font-medium"
+          : "text-muted-foreground",
         disabled && "pointer-events-none opacity-50",
         className
       )}
@@ -371,7 +374,13 @@ export function SidebarNavItem({
       {...props}
     >
       {icon && (
-        <span className="mr-3 flex h-5 w-5 items-center justify-center">
+        <span
+          className={cn(
+            "flex items-center justify-center",
+            open ? "mr-3 h-5 w-5" : "h-5 w-5",
+            active && "text-primary"
+          )}
+        >
           {icon}
         </span>
       )}

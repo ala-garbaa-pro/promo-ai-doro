@@ -18,6 +18,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { EyeIcon, EyeOffIcon, LoaderCircle } from "lucide-react";
+import { signUp } from "@/lib/auth/better-auth-client";
 
 // Form validation schema
 const registerSchema = z
@@ -111,30 +112,30 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      // This would be replaced with your actual registration logic
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      // Use better-auth signUp method
+      const { error } = await signUp.email(
+        {
           name: formData.name,
           email: formData.email,
           password: formData.password,
-        }),
-      });
+          // Redirect to login page with registered=true query param
+          callbackURL: "/auth/login?registered=true",
+        },
+        {
+          onSuccess: () => {
+            // Redirect is handled automatically by better-auth
+          },
+        }
+      );
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || "Registration failed");
+      if (error) {
+        throw new Error(error.message || "Registration failed");
       }
-
-      // Redirect to login page on successful registration
-      router.push("/auth/login?registered=true");
     } catch (error) {
       console.error("Registration error:", error);
       setAuthError(
         error instanceof Error ? error.message : "An unexpected error occurred"
       );
-    } finally {
       setIsLoading(false);
     }
   };

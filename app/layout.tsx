@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Poppins, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/lib/auth/auth-context";
+import { AuthProvider } from "@/components/auth/auth-provider";
 import LayoutWrapper from "@/components/app/layout-wrapper";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 

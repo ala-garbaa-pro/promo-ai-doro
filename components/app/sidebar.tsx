@@ -12,6 +12,8 @@ import {
   Home,
   LogOut,
   User,
+  CheckCircle2,
+  Flame,
 } from "lucide-react";
 import {
   Sidebar,
@@ -27,7 +29,8 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/auth/auth-context";
+import { useAuth } from "@/components/auth/auth-provider";
+import { cn } from "@/lib/utils";
 
 interface AppSidebarProps {
   user: {
@@ -41,7 +44,7 @@ interface AppSidebarProps {
 export function AppSidebar({ user }: AppSidebarProps) {
   const pathname = usePathname();
   const { open } = useSidebar();
-  const { logout } = useAuth();
+  const { signOut } = useAuth();
 
   // Get user initials for avatar fallback
   const getInitials = (name?: string) => {
@@ -54,18 +57,18 @@ export function AppSidebar({ user }: AppSidebarProps) {
   };
 
   const handleLogout = async () => {
-    await logout();
+    await signOut();
   };
 
   return (
-    <Sidebar className="border-gray-800 bg-gray-900">
-      <SidebarHeader className="flex items-center border-gray-800 px-6">
+    <Sidebar className="border-border bg-sidebar dark:bg-sidebar-dark">
+      <SidebarHeader className="flex items-center border-border px-6">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600">
-            <Clock className="h-4 w-4 text-white" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary-accent shadow-glow-sm">
+            <Flame className="h-4 w-4 text-primary-foreground" />
           </div>
           {open && (
-            <span className="text-lg font-semibold text-white">
+            <span className="text-lg font-semibold text-foreground font-poppins">
               Pomo AI-doro
             </span>
           )}
@@ -117,30 +120,33 @@ export function AppSidebar({ user }: AppSidebarProps) {
           <SidebarGroupContent className="px-2">
             {open ? (
               <div className="space-y-1 text-sm">
-                <p className="px-2 py-1.5 text-gray-400">
-                  Complete project proposal
-                </p>
-                <p className="px-2 py-1.5 text-gray-400">
-                  Research new features
-                </p>
-                <p className="px-2 py-1.5 text-gray-400">
-                  Review documentation
-                </p>
+                <div className="flex items-center gap-2 px-2 py-1.5 text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-accent/50 cursor-pointer group">
+                  <CheckCircle2 className="h-4 w-4 text-primary/70 group-hover:text-primary" />
+                  <p className="truncate">Complete project proposal</p>
+                </div>
+                <div className="flex items-center gap-2 px-2 py-1.5 text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-accent/50 cursor-pointer group">
+                  <CheckCircle2 className="h-4 w-4 text-primary/70 group-hover:text-primary" />
+                  <p className="truncate">Research new features</p>
+                </div>
+                <div className="flex items-center gap-2 px-2 py-1.5 text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-accent/50 cursor-pointer group">
+                  <CheckCircle2 className="h-4 w-4 text-primary/70 group-hover:text-primary" />
+                  <p className="truncate">Review documentation</p>
+                </div>
               </div>
             ) : (
               <div className="flex justify-center">
-                <ListTodo className="h-5 w-5 text-gray-400" />
+                <ListTodo className="h-5 w-5 text-muted-foreground" />
               </div>
             )}
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-gray-800 px-6 py-3">
+      <SidebarFooter className="border-border px-6 py-3">
         <div className="flex items-center gap-3">
-          <Avatar className="h-9 w-9">
+          <Avatar className="h-9 w-9 border-2 border-primary/20">
             <AvatarImage src={user.avatar} alt={user.name || user.email} />
-            <AvatarFallback className="bg-indigo-600 text-white">
+            <AvatarFallback className="bg-primary text-primary-foreground">
               {getInitials(user.name)}
             </AvatarFallback>
           </Avatar>
@@ -148,11 +154,13 @@ export function AppSidebar({ user }: AppSidebarProps) {
           {open && (
             <div className="flex flex-1 items-center justify-between">
               <div className="truncate">
-                <p className="text-sm font-medium text-white truncate">
+                <p className="text-sm font-medium text-foreground truncate">
                   {user.name || user.email}
                 </p>
                 {user.name && (
-                  <p className="text-xs text-gray-400 truncate">{user.email}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {user.email}
+                  </p>
                 )}
               </div>
 
@@ -161,7 +169,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
                   variant="ghost"
                   size="icon"
                   asChild
-                  className="h-8 w-8 text-gray-400 hover:text-white"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
                 >
                   <Link href="/app/settings">
                     <Settings className="h-4 w-4" />
@@ -173,7 +181,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
                   variant="ghost"
                   size="icon"
                   onClick={handleLogout}
-                  className="h-8 w-8 text-gray-400 hover:text-white"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
                 >
                   <LogOut className="h-4 w-4" />
                   <span className="sr-only">Log out</span>
@@ -188,7 +196,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
                 variant="ghost"
                 size="icon"
                 asChild
-                className="h-8 w-8 text-gray-400 hover:text-white"
+                className="h-8 w-8 text-muted-foreground hover:text-foreground"
               >
                 <Link href="/app/settings">
                   <Settings className="h-4 w-4" />
@@ -200,7 +208,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
                 variant="ghost"
                 size="icon"
                 onClick={handleLogout}
-                className="h-8 w-8 text-gray-400 hover:text-white"
+                className="h-8 w-8 text-muted-foreground hover:text-foreground"
               >
                 <LogOut className="h-4 w-4" />
                 <span className="sr-only">Log out</span>
