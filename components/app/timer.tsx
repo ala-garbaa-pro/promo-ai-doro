@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/components/ui/use-toast";
-import { useSettings } from "@/components/app/settings-provider";
+import { useSettings } from "@/lib/contexts/settings-context";
 import { Play, Pause, RotateCcw, Volume2, VolumeX } from "lucide-react";
 import { AnimatedTransition } from "@/components/ui/animated-transition";
+import { useSessionRecording } from "@/hooks/use-session-recording";
 
 type TimerMode = "pomodoro" | "short-break" | "long-break";
 
@@ -15,12 +16,23 @@ export function Timer() {
   const { settings } = useSettings();
   const { toast } = useToast();
 
+  // Session recording
+  const {
+    startRecordingSession,
+    completeSessionRecording,
+    cancelSessionRecording,
+    currentSessionId,
+  } = useSessionRecording();
+
   // Timer state
   const [mode, setMode] = useState<TimerMode>("pomodoro");
-  const [timeLeft, setTimeLeft] = useState(settings.pomodoroMinutes * 60);
+  const [timeLeft, setTimeLeft] = useState(
+    settings.timer.pomodoroDuration * 60
+  );
   const [isRunning, setIsRunning] = useState(false);
   const [completedPomodoros, setCompletedPomodoros] = useState(0);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(!settings.notification.soundEnabled);
+  const [interruptionCount, setInterruptionCount] = useState(0);
 
   // Audio refs
   const startSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -36,13 +48,13 @@ export function Timer() {
 
     switch (mode) {
       case "pomodoro":
-        duration = settings.pomodoroMinutes * 60;
+        duration = settings.timer.pomodoroDuration * 60;
         break;
       case "short-break":
-        duration = settings.shortBreakMinutes * 60;
+        duration = settings.timer.shortBreakDuration * 60;
         break;
       case "long-break":
-        duration = settings.longBreakMinutes * 60;
+        duration = settings.timer.longBreakDuration * 60;
         break;
     }
 
@@ -101,8 +113,35 @@ export function Timer() {
   };
 
   // Start timer
-  const startTimer = () => {
+  const startTimer = async () => {
     if (isRunning) return;
+
+    // Reset interruption count when starting a new session
+    setInterruptionCount(0);
+
+    // Start session recording
+    let sessionType: "work" | "short-break" | "long-break";
+    let duration: number;
+
+    switch (mode) {
+      case "pomodoro":
+        sessionType = "work";
+        duration = settings.timer.pomodoroDuration;
+        break;
+      case "short-break":
+        sessionType = "short-break";
+        duration = settings.timer.shortBreakDuration;
+        break;
+      case "long-break":
+        sessionType = "long-break";
+        duration = settings.timer.longBreakDuration;
+        break;
+      default:
+        sessionType = "work";
+        duration = settings.timer.pomodoroDuration;
+    }
+
+    await startRecordingSession(sessionType, duration);
 
     setIsRunning(true);
 
@@ -143,6 +182,11 @@ export function Timer() {
 
     setIsRunning(false);
 
+    // Increment interruption count when pausing
+    if (mode === "pomodoro") {
+      setInterruptionCount((prev) => prev + 1);
+    }
+
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
@@ -150,19 +194,27 @@ export function Timer() {
   };
 
   // Reset timer
-  const resetTimer = () => {
+  const resetTimer = async () => {
     pauseTimer();
+
+    // Cancel the current session if it exists
+    if (currentSessionId) {
+      await cancelSessionRecording(currentSessionId);
+    }
+
+    // Reset interruption count
+    setInterruptionCount(0);
 
     let duration = 0;
     switch (mode) {
       case "pomodoro":
-        duration = settings.pomodoroMinutes * 60;
+        duration = settings.timer.pomodoroDuration * 60;
         break;
       case "short-break":
-        duration = settings.shortBreakMinutes * 60;
+        duration = settings.timer.shortBreakDuration * 60;
         break;
       case "long-break":
-        duration = settings.longBreakMinutes * 60;
+        duration = settings.timer.longBreakDuration * 60;
         break;
     }
 
@@ -171,7 +223,16 @@ export function Timer() {
   };
 
   // Handle timer completion
-  const handleTimerComplete = () => {
+  const handleTimerComplete = async () => {
+    // Complete the session recording
+    if (currentSessionId) {
+      await completeSessionRecording(
+        currentSessionId,
+        false, // Not interrupted
+        interruptionCount
+      );
+    }
+
     // Play end sound
     if (endSoundRef.current && !isMuted) {
       endSoundRef.current
@@ -190,7 +251,7 @@ export function Timer() {
       });
 
       // Check if we should take a long break
-      if (newCompletedCount % settings.longBreakInterval === 0) {
+      if (newCompletedCount % settings.timer.longBreakInterval === 0) {
         setMode("long-break");
       } else {
         setMode("short-break");
@@ -203,6 +264,9 @@ export function Timer() {
 
       setMode("pomodoro");
     }
+
+    // Reset interruption count
+    setInterruptionCount(0);
   };
 
   // Toggle mute
@@ -216,13 +280,13 @@ export function Timer() {
 
     switch (mode) {
       case "pomodoro":
-        totalSeconds = settings.pomodoroMinutes * 60;
+        totalSeconds = settings.timer.pomodoroDuration * 60;
         break;
       case "short-break":
-        totalSeconds = settings.shortBreakMinutes * 60;
+        totalSeconds = settings.timer.shortBreakDuration * 60;
         break;
       case "long-break":
-        totalSeconds = settings.longBreakMinutes * 60;
+        totalSeconds = settings.timer.longBreakDuration * 60;
         break;
     }
 

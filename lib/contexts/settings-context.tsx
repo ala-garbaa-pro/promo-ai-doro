@@ -35,6 +35,12 @@ export interface NotificationSettings {
   showRemainingTime: boolean;
   notifyBeforeEnd: boolean;
   notifyBeforeEndTime: number; // in seconds
+  ambientSounds: {
+    enabled: boolean;
+    volume: number;
+    defaultSound: string;
+    autoPlay: boolean;
+  };
 }
 
 export interface ThemeSettings {
@@ -97,6 +103,12 @@ export const defaultSettings: AppSettings = {
     showRemainingTime: true,
     notifyBeforeEnd: false,
     notifyBeforeEndTime: 30,
+    ambientSounds: {
+      enabled: true,
+      volume: 50,
+      defaultSound: "rain",
+      autoPlay: false,
+    },
   },
   theme: {
     fontSize: "medium",

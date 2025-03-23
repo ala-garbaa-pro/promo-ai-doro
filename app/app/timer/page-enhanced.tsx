@@ -16,7 +16,10 @@ import {
   Target,
   CheckCircle,
   BarChart,
+  Music,
 } from "lucide-react";
+import { AmbientSoundPlayer } from "@/components/app/ambient-sound-player";
+import { useAmbientSounds } from "@/hooks/use-ambient-sounds";
 import { useSettings } from "@/lib/contexts/settings-context";
 import { useToast } from "@/components/ui/use-toast";
 import Link from "next/link";
@@ -81,6 +84,7 @@ export default function TimerPage() {
   const { toast } = useToast();
   const { announceToScreenReader, isReducedMotion } = useAccessibility();
   const { user, isAuthenticated } = useAuth();
+  const { playSound, stopSound } = useAmbientSounds();
   const timerDurations = getTimerDurations(settings);
 
   // Session persistence
@@ -132,6 +136,7 @@ export default function TimerPage() {
   const [showCelebration, setShowCelebration] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [interruptionCount, setInterruptionCount] = useState(0);
+  const [showSounds, setShowSounds] = useState(false);
 
   // Refs for accessibility
   const mainContentRef = useRef<HTMLDivElement>(null);
@@ -304,6 +309,19 @@ export default function TimerPage() {
     // Announce to screen reader
     announceToScreenReader(newState ? "Timer started" : "Timer paused");
 
+    // Play or pause ambient sound if enabled
+    if (
+      newState &&
+      mode === "pomodoro" &&
+      settings.notification.ambientSounds.enabled &&
+      settings.notification.ambientSounds.autoPlay
+    ) {
+      const defaultSoundId = settings.notification.ambientSounds.defaultSound;
+      if (defaultSoundId) {
+        playSound(defaultSoundId);
+      }
+    }
+
     // Show toast notification
     toast({
       title: newState ? "Timer Started" : "Timer Paused",
@@ -357,6 +375,11 @@ export default function TimerPage() {
       completeSession(sessionId, true, interruptionCount, "Timer was skipped");
       setSessionId(null);
       setInterruptionCount(0);
+    }
+
+    // Stop ambient sound if playing and moving from pomodoro to break
+    if (mode === "pomodoro") {
+      stopSound();
     }
 
     // Determine next mode
@@ -616,6 +639,19 @@ export default function TimerPage() {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Ambient Sounds */}
+      <div className="max-w-md mx-auto mt-8">
+        <Button
+          variant="outline"
+          className="w-full mb-4 flex items-center justify-center"
+          onClick={() => setShowSounds(!showSounds)}
+        >
+          <Music className="h-4 w-4 mr-2" />
+          {showSounds ? "Hide Ambient Sounds" : "Show Ambient Sounds"}
+        </Button>
+        {showSounds && <AmbientSoundPlayer />}
       </div>
     </div>
   );

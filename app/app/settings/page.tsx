@@ -702,6 +702,114 @@ export default function SettingsPage() {
 
               <Separator />
 
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Ambient Sounds</h3>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="ambientSoundsEnabled">
+                      Enable Ambient Sounds
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Play background sounds during focus sessions
+                    </p>
+                  </div>
+                  <Switch
+                    id="ambientSoundsEnabled"
+                    checked={settings.notification.ambientSounds.enabled}
+                    onCheckedChange={(checked) =>
+                      handleNotificationSettingChange("ambientSounds", {
+                        ...settings.notification.ambientSounds,
+                        enabled: checked,
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="ambientSoundsVolume">
+                      Ambient Sound Volume
+                    </Label>
+                    <span className="text-sm text-muted-foreground">
+                      {settings.notification.ambientSounds.volume}%
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Music className="h-4 w-4 text-muted-foreground" />
+                    <Slider
+                      id="ambientSoundsVolume"
+                      disabled={!settings.notification.ambientSounds.enabled}
+                      min={0}
+                      max={100}
+                      step={1}
+                      value={[settings.notification.ambientSounds.volume]}
+                      onValueChange={(value) =>
+                        handleNotificationSettingChange("ambientSounds", {
+                          ...settings.notification.ambientSounds,
+                          volume: value[0],
+                        })
+                      }
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="defaultAmbientSound">
+                    Default Ambient Sound
+                  </Label>
+                  <Select
+                    disabled={!settings.notification.ambientSounds.enabled}
+                    value={settings.notification.ambientSounds.defaultSound}
+                    onValueChange={(value) =>
+                      handleNotificationSettingChange("ambientSounds", {
+                        ...settings.notification.ambientSounds,
+                        defaultSound: value,
+                      })
+                    }
+                  >
+                    <SelectTrigger id="defaultAmbientSound">
+                      <SelectValue placeholder="Select a sound" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="rain">Rain</SelectItem>
+                      <SelectItem value="forest">Forest</SelectItem>
+                      <SelectItem value="cafe">Cafe</SelectItem>
+                      <SelectItem value="white-noise">White Noise</SelectItem>
+                      <SelectItem value="fireplace">Fireplace</SelectItem>
+                      <SelectItem value="ocean">Ocean Waves</SelectItem>
+                      <SelectItem value="night">Night Sounds</SelectItem>
+                      <SelectItem value="lofi">Lo-Fi Beats</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="autoPlayAmbientSounds">
+                      Auto-play on Focus
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Automatically play ambient sound when starting a focus
+                      session
+                    </p>
+                  </div>
+                  <Switch
+                    id="autoPlayAmbientSounds"
+                    disabled={!settings.notification.ambientSounds.enabled}
+                    checked={settings.notification.ambientSounds.autoPlay}
+                    onCheckedChange={(checked) =>
+                      handleNotificationSettingChange("ambientSounds", {
+                        ...settings.notification.ambientSounds,
+                        autoPlay: checked,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+
+              <Separator />
+
               <div className="rounded-lg bg-muted p-4">
                 <div className="flex items-start gap-4">
                   <Shield className="h-5 w-5 text-muted-foreground mt-0.5" />
