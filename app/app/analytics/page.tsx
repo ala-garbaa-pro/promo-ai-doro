@@ -31,6 +31,7 @@ import {
 import { FocusScoreGauge } from "@/components/analytics/focus-score-gauge";
 import { StreakCalendar } from "@/components/analytics/streak-calendar";
 import { AIInsights } from "@/components/analytics/ai-insights";
+import { AIProductivityInsights } from "@/components/analytics/ai-productivity-insights";
 import { ComparativeChart } from "@/components/analytics/comparative-chart";
 import { AnimatedTransition } from "@/components/ui/animated-transition";
 import { AnimatedList } from "@/components/ui/animated-list";
@@ -260,14 +261,18 @@ export default function AnalyticsPage() {
             </Card>
           </div>
 
-          <AIInsights
-            data={analytics || {}}
-            isLoading={isLoading}
-            onRefreshInsights={async () => {
-              setIsLoading(true);
-              await fetchAnalytics();
-            }}
-          />
+          <div className="grid grid-cols-1 gap-6 mb-8">
+            <AIProductivityInsights />
+
+            <AIInsights
+              data={analytics || {}}
+              isLoading={isLoading}
+              onRefreshInsights={async () => {
+                setIsLoading(true);
+                await fetchAnalytics();
+              }}
+            />
+          </div>
         </TabsContent>
 
         <TabsContent value="focus">

@@ -18,6 +18,7 @@ import {
   FileText,
   Brain,
   Zap,
+  UserPlus,
 } from "lucide-react";
 import {
   Sidebar,
@@ -118,6 +119,12 @@ export function AppSidebar({ user }: AppSidebarProps) {
             icon={<Zap className="h-5 w-5" />}
             label="Flow State"
             active={pathname === "/app/flow-state"}
+          />
+          <SidebarNavItem
+            href="/app/collaborative-sessions"
+            icon={<UserPlus className="h-5 w-5" />}
+            label="Co-working"
+            active={pathname.startsWith("/app/collaborative-sessions")}
           />
           <SidebarNavItem
             href="/app/analytics"

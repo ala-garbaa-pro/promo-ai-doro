@@ -69,6 +69,19 @@ export function parseTaskInput(input: string): ParsedTask {
       regex: /\bon (\d{4}-\d{2}-\d{2})\b/i,
       handler: (match: RegExpMatchArray) => new Date(match[1]),
     },
+  ];
+
+  for (const pattern of datePatterns) {
+    const match = input.match(pattern.regex);
+    if (match) {
+      task.dueDate = pattern.handler(match);
+      // Remove the date part from the title
+      task.title = task.title.replace(match[0], "").trim();
+    }
+  }
+
+  // Extract time (e.g., "at 3pm", "at 15:30")
+  const timePatterns = [
     {
       regex: /\bat (\d{1,2}):(\d{2})\s*(am|pm)?\b/i,
       handler: (match: RegExpMatchArray) => {
@@ -84,13 +97,27 @@ export function parseTaskInput(input: string): ParsedTask {
         return date;
       },
     },
+    {
+      regex: /\bat (\d{1,2})\s*(am|pm)\b/i,
+      handler: (match: RegExpMatchArray) => {
+        const date = task.dueDate || new Date();
+        let hours = parseInt(match[1]);
+        const ampm = match[2].toLowerCase();
+
+        if (ampm === "pm" && hours < 12) hours += 12;
+        if (ampm === "am" && hours === 12) hours = 0;
+
+        date.setHours(hours, 0, 0, 0);
+        return date;
+      },
+    },
   ];
 
-  for (const pattern of datePatterns) {
+  for (const pattern of timePatterns) {
     const match = input.match(pattern.regex);
     if (match) {
       task.dueDate = pattern.handler(match);
-      // Remove the date part from the title
+      // Remove the time part from the title
       task.title = task.title.replace(match[0], "").trim();
     }
   }

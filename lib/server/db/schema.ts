@@ -476,6 +476,61 @@ export const integrationsRelations = relations(integrations, ({ one }) => ({
   }),
 }));
 
+// Task Templates table
+export const taskTemplates = pgTable("task_templates", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  category: varchar("category", { length: 255 }),
+  isDefault: boolean("is_default").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Task Template Items table
+export const taskTemplateItems = pgTable("task_template_items", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  templateId: uuid("template_id")
+    .notNull()
+    .references(() => taskTemplates.id, { onDelete: "cascade" }),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  priority: taskPriorityEnum("priority").default("medium"),
+  estimatedPomodoros: integer("estimated_pomodoros"),
+  relativeDueDate: varchar("relative_due_date", { length: 50 }),
+  category: varchar("category", { length: 255 }),
+  tags: json("tags").$type<string[]>(),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Task Templates relations
+export const taskTemplatesRelations = relations(
+  taskTemplates,
+  ({ one, many }) => ({
+    user: one(users, {
+      fields: [taskTemplates.userId],
+      references: [users.id],
+    }),
+    items: many(taskTemplateItems),
+  })
+);
+
+// Task Template Items relations
+export const taskTemplateItemsRelations = relations(
+  taskTemplateItems,
+  ({ one }) => ({
+    template: one(taskTemplates, {
+      fields: [taskTemplateItems.templateId],
+      references: [taskTemplates.id],
+    }),
+  })
+);
+
 // Flow State Sessions table
 export const flowStateSessions = pgTable("flow_state_sessions", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -589,6 +644,104 @@ export const flowSessionTriggersRelations = relations(
     trigger: one(flowStateTriggers, {
       fields: [flowSessionTriggers.triggerId],
       references: [flowStateTriggers.id],
+    }),
+  })
+);
+
+// Collaborative Sessions table
+export const collaborativeSessions = pgTable("collaborative_sessions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  creatorId: uuid("creator_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  isPublic: boolean("is_public").default(true),
+  maxParticipants: integer("max_participants").default(10),
+  workDuration: integer("work_duration").default(25 * 60), // in seconds
+  breakDuration: integer("break_duration").default(5 * 60), // in seconds
+  longBreakDuration: integer("long_break_duration").default(15 * 60), // in seconds
+  sessionsBeforeLongBreak: integer("sessions_before_long_break").default(4),
+  startTime: timestamp("start_time"),
+  endTime: timestamp("end_time"),
+  status: varchar("status", { length: 50 }).default("scheduled"), // scheduled, active, completed, cancelled
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Session Participants table
+export const sessionParticipants = pgTable("session_participants", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  sessionId: uuid("session_id")
+    .notNull()
+    .references(() => collaborativeSessions.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  joinedAt: timestamp("joined_at").defaultNow().notNull(),
+  leftAt: timestamp("left_at"),
+  status: varchar("status", { length: 50 }).default("joined"), // joined, active, on_break, away, left
+  focusScore: integer("focus_score"),
+  completedIntervals: integer("completed_intervals").default(0),
+  tasksCompleted: integer("tasks_completed").default(0),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Session Messages table
+export const sessionMessages = pgTable("session_messages", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  sessionId: uuid("session_id")
+    .notNull()
+    .references(() => collaborativeSessions.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  message: text("message").notNull(),
+  type: varchar("type", { length: 50 }).default("chat"), // chat, system, goal, progress
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Collaborative Sessions relations
+export const collaborativeSessionsRelations = relations(
+  collaborativeSessions,
+  ({ one, many }) => ({
+    creator: one(users, {
+      fields: [collaborativeSessions.creatorId],
+      references: [users.id],
+    }),
+    participants: many(sessionParticipants),
+    messages: many(sessionMessages),
+  })
+);
+
+// Session Participants relations
+export const sessionParticipantsRelations = relations(
+  sessionParticipants,
+  ({ one }) => ({
+    session: one(collaborativeSessions, {
+      fields: [sessionParticipants.sessionId],
+      references: [collaborativeSessions.id],
+    }),
+    user: one(users, {
+      fields: [sessionParticipants.userId],
+      references: [users.id],
+    }),
+  })
+);
+
+// Session Messages relations
+export const sessionMessagesRelations = relations(
+  sessionMessages,
+  ({ one }) => ({
+    session: one(collaborativeSessions, {
+      fields: [sessionMessages.sessionId],
+      references: [collaborativeSessions.id],
+    }),
+    user: one(users, {
+      fields: [sessionMessages.userId],
+      references: [users.id],
     }),
   })
 );
