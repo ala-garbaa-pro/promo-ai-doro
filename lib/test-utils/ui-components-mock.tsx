@@ -27,6 +27,10 @@ export const DialogFooter = ({ children }: any) => (
   <div data-testid="dialog-footer">{children}</div>
 );
 
+export const DialogTrigger = ({ children }: any) => (
+  <div data-testid="dialog-trigger">{children}</div>
+);
+
 // Mock Input component
 export const Input = React.forwardRef(({ ...props }: any, ref) => (
   <input ref={ref} {...props} />
@@ -59,6 +63,10 @@ export const Select = ({ children, value, onValueChange }: any) => (
       <option value="in_progress">In Progress</option>
       <option value="completed">Completed</option>
       <option value="cancelled">Cancelled</option>
+      <option value="daily">Day(s)</option>
+      <option value="weekly">Week(s)</option>
+      <option value="monthly">Month(s)</option>
+      <option value="yearly">Year(s)</option>
     </select>
   </div>
 );
@@ -107,7 +115,9 @@ export const PopoverTrigger = ({ children, asChild }: any) => (
 );
 
 export const PopoverContent = ({ children }: any) => (
-  <div data-testid="popover-content">{children}</div>
+  <div data-testid="popover-content" role="dialog">
+    {children}
+  </div>
 );
 
 // Mock Calendar component
@@ -123,6 +133,86 @@ export const Calendar = ({ selected, onSelect, initialFocus, mode }: any) => (
   </div>
 );
 
+// Mock DropdownMenu components
+export const DropdownMenu = ({ children }: any) => (
+  <div data-testid="dropdown-menu">{children}</div>
+);
+
+export const DropdownMenuTrigger = ({ children, asChild }: any) => (
+  <div data-testid="dropdown-menu-trigger" data-aschild={asChild}>
+    {children}
+  </div>
+);
+
+export const DropdownMenuContent = ({ children, align }: any) => (
+  <div data-testid="dropdown-menu-content" data-align={align}>
+    {children}
+  </div>
+);
+
+export const DropdownMenuItem = ({ children, onClick }: any) => (
+  <div data-testid="dropdown-menu-item" onClick={onClick}>
+    {children}
+  </div>
+);
+
+export const DropdownMenuSeparator = () => (
+  <div data-testid="dropdown-menu-separator" />
+);
+
+// Mock ScrollArea component
+export const ScrollArea = ({ children, className }: any) => (
+  <div data-testid="scroll-area" className={className}>
+    {children}
+  </div>
+);
+
+// Mock Checkbox component
+export const Checkbox = ({ id, checked, onCheckedChange }: any) => (
+  <input
+    type="checkbox"
+    id={id}
+    checked={checked}
+    onChange={(e) => onCheckedChange && onCheckedChange(e.target.checked)}
+  />
+);
+
+// Mock Switch component
+export const Switch = ({ id, checked, onCheckedChange }: any) => (
+  <input
+    type="checkbox"
+    role="switch"
+    id={id}
+    checked={checked}
+    onChange={(e) => onCheckedChange && onCheckedChange(e.target.checked)}
+  />
+);
+
+// Mock Tabs components
+export const Tabs = ({ children, defaultValue, value, onValueChange }: any) => (
+  <div data-testid="tabs" data-value={value || defaultValue}>
+    {children}
+  </div>
+);
+
+export const TabsList = ({ children, className }: any) => (
+  <div data-testid="tabs-list" className={className}>
+    {children}
+  </div>
+);
+
+export const TabsTrigger = ({ children, value }: any) => (
+  <button data-testid="tabs-trigger" data-value={value}>
+    {children}
+  </button>
+);
+
+export const TabsContent = ({ children, value }: any) => (
+  <div data-testid="tabs-content" data-value={value}>
+    {children}
+  </div>
+);
+
 // Export all mocked components
 export default {
   Dialog,
@@ -131,6 +221,7 @@ export default {
   DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogTrigger,
   Input,
   Label,
   Textarea,
@@ -144,4 +235,16 @@ export default {
   PopoverTrigger,
   PopoverContent,
   Calendar,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  ScrollArea,
+  Checkbox,
+  Switch,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
 };
