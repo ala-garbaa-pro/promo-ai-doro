@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Bell, Search, Plus, Menu, X, Sun, Moon } from "lucide-react";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useTheme } from "next-themes";
@@ -23,16 +23,6 @@ interface AppHeaderProps {
 export function AppHeader({ user }: AppHeaderProps) {
   const { toggleSidebar, isMobile } = useSidebar();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-
-  // Get user initials for avatar fallback
-  const getInitials = (name?: string) => {
-    if (!name) return user.email.substring(0, 2).toUpperCase();
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase();
-  };
 
   return (
     <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10">
@@ -95,12 +85,14 @@ export function AppHeader({ user }: AppHeaderProps) {
           </Button>
 
           <Link href="/app/profile">
-            <Avatar className="h-8 w-8 transition-transform hover:scale-105">
-              <AvatarImage src={user.avatar} alt={user.name || user.email} />
-              <AvatarFallback className="bg-primary text-primary-foreground">
-                {getInitials(user.name)}
-              </AvatarFallback>
-            </Avatar>
+            <UserAvatar
+              user={{
+                name: user.name,
+                image: user.avatar,
+              }}
+              size="sm"
+              className="transition-transform hover:scale-105"
+            />
           </Link>
         </div>
       </div>

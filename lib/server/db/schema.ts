@@ -140,8 +140,31 @@ export const tasks = pgTable("tasks", {
   estimatedPomodoros: integer("estimated_pomodoros"),
   actualPomodoros: integer("actual_pomodoros").default(0),
   dueDate: timestamp("due_date"),
+  categoryId: uuid("category_id").references(() => categories.id, {
+    onDelete: "set null",
+  }),
   category: varchar("category", { length: 255 }),
   tags: json("tags").$type<string[]>(),
+  isRecurring: boolean("is_recurring").default(false),
+  recurringType: varchar("recurring_type", { length: 50 }),
+  recurringInterval: integer("recurring_interval"),
+  recurringEndDate: timestamp("recurring_end_date"),
+  parentTaskId: uuid("parent_task_id").references(() => tasks.id, {
+    onDelete: "set null",
+  }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Task dependencies table
+export const taskDependencies = pgTable("task_dependencies", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  taskId: uuid("task_id")
+    .notNull()
+    .references(() => tasks.id, { onDelete: "cascade" }),
+  dependsOnTaskId: uuid("depends_on_task_id")
+    .notNull()
+    .references(() => tasks.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -152,8 +175,37 @@ export const tasksRelations = relations(tasks, ({ one, many }) => ({
     fields: [tasks.userId],
     references: [users.id],
   }),
+  category: one(categories, {
+    fields: [tasks.categoryId],
+    references: [categories.id],
+  }),
+  parentTask: one(tasks, {
+    fields: [tasks.parentTaskId],
+    references: [tasks.id],
+    relationName: "childTasks",
+  }),
+  childTasks: many(tasks, { relationName: "childTasks" }),
   sessions: many(sessionTasks),
+  dependencies: many(taskDependencies, { relationName: "taskDependencies" }),
+  dependents: many(taskDependencies, { relationName: "taskDependents" }),
 }));
+
+// Task dependencies relations
+export const taskDependenciesRelations = relations(
+  taskDependencies,
+  ({ one }) => ({
+    task: one(tasks, {
+      fields: [taskDependencies.taskId],
+      references: [tasks.id],
+      relationName: "taskDependencies",
+    }),
+    dependsOnTask: one(tasks, {
+      fields: [taskDependencies.dependsOnTaskId],
+      references: [tasks.id],
+      relationName: "taskDependents",
+    }),
+  })
+);
 
 // Session Tasks junction table
 export const sessionTasks = pgTable("session_tasks", {
@@ -198,6 +250,27 @@ export const focusSoundsRelations = relations(focusSounds, ({ one }) => ({
     fields: [focusSounds.userId],
     references: [users.id],
   }),
+}));
+
+// Categories table
+export const categories = pgTable("categories", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 255 }).notNull(),
+  color: varchar("color", { length: 50 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Categories relations
+export const categoriesRelations = relations(categories, ({ one, many }) => ({
+  user: one(users, {
+    fields: [categories.userId],
+    references: [users.id],
+  }),
+  tasks: many(tasks),
 }));
 
 // Analytics table

@@ -18,8 +18,14 @@ export interface Task {
   estimatedPomodoros?: number;
   actualPomodoros?: number;
   dueDate?: Date | string;
+  categoryId?: string;
   category?: string;
   tags?: string[];
+  isRecurring?: boolean;
+  recurringType?: "daily" | "weekly" | "monthly" | "yearly";
+  recurringInterval?: number;
+  recurringEndDate?: Date | string;
+  parentTaskId?: string;
   createdAt: Date | string;
   updatedAt: Date | string;
 }
@@ -32,8 +38,14 @@ export interface NewTask {
   status?: TaskStatus;
   estimatedPomodoros?: number;
   dueDate?: Date | string;
+  categoryId?: string;
   category?: string;
   tags?: string[];
+  isRecurring?: boolean;
+  recurringType?: "daily" | "weekly" | "monthly" | "yearly";
+  recurringInterval?: number;
+  recurringEndDate?: Date | string;
+  parentTaskId?: string;
 }
 
 // Task update input

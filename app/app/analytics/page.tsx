@@ -23,6 +23,13 @@ import {
 import { useAuth } from "@/components/auth/auth-provider";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
+import {
+  DynamicFocusTimeChart,
+  DynamicTaskCompletionChart,
+  DynamicProductivityHeatmap
+} from "@/components/analytics/dynamic-charts";
+import { AnimatedTransition } from "@/components/ui/animated-transition";
+import { AnimatedList } from "@/components/ui/animated-list";
 
 export default function AnalyticsPage() {
   const { user, isAuthenticated } = useAuth();
@@ -78,13 +85,14 @@ export default function AnalyticsPage() {
 
   return (
     <div className="container mx-auto p-6">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">Analytics</h1>
-          <p className="text-muted-foreground mt-1">
-            Track your productivity metrics and insights
-          </p>
-        </div>
+      <AnimatedTransition type="slide-down" duration={0.4}>
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold">Analytics</h1>
+            <p className="text-muted-foreground mt-1">
+              Track your productivity metrics and insights
+            </p>
+          </div>
 
         <div className="flex items-center gap-2">
           <Tabs value={timeRange} onValueChange={(v) => setTimeRange(v as any)} className="w-auto">
@@ -95,13 +103,15 @@ export default function AnalyticsPage() {
             </TabsList>
           </Tabs>
         </div>
-      </div>
+      </AnimatedTransition>
 
       {error && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+        <AnimatedTransition type="slide-up" duration={0.3}>
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </AnimatedTransition>
       )}
 
       {isLoading ? (
@@ -127,7 +137,11 @@ export default function AnalyticsPage() {
         </TabsList>
 
         <TabsContent value="overview">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <AnimatedList
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+            animation="slide-up"
+            staggerDelay={0.1}
+          >
             <MetricCard
               title="Total Focus Time"
               value={analytics ? formatMinutes(analytics.totalWorkMinutes || 0) : "0h 0m"}
@@ -156,7 +170,7 @@ export default function AnalyticsPage() {
               icon={<TrendingUp className="h-5 w-5" />}
               color="bg-blue-500/10 text-blue-500"
             />
-          </div>
+          </AnimatedList>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <Card>
@@ -167,18 +181,13 @@ export default function AnalyticsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-[300px] flex items-center justify-center">
-                  {analytics && analytics.dailyAnalytics && analytics.dailyAnalytics.length > 0 ? (
-                    <div className="w-full h-full">
-                      {/* Chart would go here */}
-                      <div className="flex items-center justify-center h-full">
-                        <p className="text-muted-foreground">Chart visualization coming soon</p>
-                      </div>
-                    </div>
-                  ) : (
+                {analytics && analytics.dailyAnalytics && analytics.dailyAnalytics.length > 0 ? (
+                  <DynamicFocusTimeChart data={analytics.dailyAnalytics} />
+                ) : (
+                  <div className="h-[300px] flex items-center justify-center">
                     <p className="text-muted-foreground">No data available yet</p>
-                  )}
-                </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -190,18 +199,13 @@ export default function AnalyticsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-[300px] flex items-center justify-center">
-                  {analytics && analytics.dailyAnalytics && analytics.dailyAnalytics.length > 0 ? (
-                    <div className="w-full h-full">
-                      {/* Chart would go here */}
-                      <div className="flex items-center justify-center h-full">
-                        <p className="text-muted-foreground">Chart visualization coming soon</p>
-                      </div>
-                    </div>
-                  ) : (
+                {analytics && analytics.dailyAnalytics && analytics.dailyAnalytics.length > 0 ? (
+                  <DynamicTaskCompletionChart data={analytics.dailyAnalytics} />
+                ) : (
+                  <div className="h-[300px] flex items-center justify-center">
                     <p className="text-muted-foreground">No data available yet</p>
-                  )}
-                </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -248,72 +252,335 @@ export default function AnalyticsPage() {
         </TabsContent>
 
         <TabsContent value="focus">
-          <Card>
-            <CardContent className="p-6 text-center">
-              {analytics && analytics.totalWorkSessions > 0 ? (
-                <div className="py-12">
-                  <p className="text-muted-foreground mb-4">
-                    Focus time analytics visualization coming soon
-                  </p>
-                  <Button variant="outline">
-                    <Clock className="h-4 w-4 mr-2" />
-                    View Detailed Focus Report
-                  </Button>
-                </div>
-              ) : (
+          {analytics && analytics.totalWorkSessions > 0 ? (
+            <div className="space-y-6">
+              <DynamicFocusTimeChart
+                data={analytics.dailyAnalytics}
+                title="Focus Time Distribution"
+                description="Your focus time patterns over time"
+              />
+
+              <DynamicProductivityHeatmap
+                data={analytics.productivityByHour || []}
+                title="Productivity Heatmap"
+                description="Your most productive hours of the day"
+              />
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Focus Insights</CardTitle>
+                  <CardDescription>Personalized insights based on your focus patterns</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {analytics.avgFocusScore ? (
+                      <div className="rounded-lg bg-primary/5 p-4 border border-primary/10">
+                        <p className="text-sm">
+                          Your average focus score is <span className="font-medium">{analytics.avgFocusScore}</span>.
+                          {analytics.avgFocusScore > 80 ?
+                            "That's excellent! You're maintaining great focus during your sessions." :
+                            analytics.avgFocusScore > 60 ?
+                            "That's good! Try to minimize interruptions to improve your score." :
+                            "Try to minimize interruptions and complete more sessions to improve your score."}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="rounded-lg bg-muted p-4 border">
+                        <p className="text-sm">
+                          Complete more focus sessions to receive personalized insights.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="p-6 text-center">
                 <p className="text-muted-foreground">
                   Focus time analytics will be available after you complete your
                   first focus session
                 </p>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="tasks">
-          <Card>
-            <CardContent className="p-6 text-center">
-              {analytics && analytics.completedTasks > 0 ? (
-                <div className="py-12">
-                  <p className="text-muted-foreground mb-4">
-                    Task analytics visualization coming soon
-                  </p>
-                  <Button variant="outline">
-                    <ListChecks className="h-4 w-4 mr-2" />
-                    View Detailed Task Report
-                  </Button>
-                </div>
-              ) : (
+          {analytics && analytics.completedTasks > 0 ? (
+            <div className="space-y-6">
+              <DynamicTaskCompletionChart
+                data={analytics.dailyAnalytics}
+                title="Task Completion Trends"
+                description="Your task completion patterns over time"
+              />
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Task Completion Rate</CardTitle>
+                  <CardDescription>Your task completion efficiency</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex flex-col items-center justify-center space-y-2">
+                          <div className="text-4xl font-bold">{analytics.completedTasks}</div>
+                          <p className="text-sm text-muted-foreground">Tasks Completed</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex flex-col items-center justify-center space-y-2">
+                          <div className="text-4xl font-bold">
+                            {analytics.totalWorkSessions > 0
+                              ? Math.round((analytics.completedTasks / analytics.totalWorkSessions) * 100) / 100
+                              : 0}
+                          </div>
+                          <p className="text-sm text-muted-foreground">Tasks Per Session</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex flex-col items-center justify-center space-y-2">
+                          <div className="text-4xl font-bold">
+                            {analytics.totalWorkMinutes > 0
+                              ? Math.round((analytics.totalWorkMinutes / analytics.completedTasks) * 10) / 10
+                              : 0}
+                          </div>
+                          <p className="text-sm text-muted-foreground">Minutes Per Task</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Task Insights</CardTitle>
+                  <CardDescription>Personalized insights based on your task patterns</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="rounded-lg bg-primary/5 p-4 border border-primary/10">
+                      <p className="text-sm">
+                        You've completed <span className="font-medium">{analytics.completedTasks}</span> tasks
+                        {timeRange === "week" ? "this week" : timeRange === "month" ? "this month" : "this year"}.
+                        {analytics.completedTasks > 10
+                          ? "Great job staying productive!"
+                          : "Keep going to increase your productivity!"}
+                      </p>
+                    </div>
+
+                    {analytics.totalWorkMinutes > 0 && analytics.completedTasks > 0 && (
+                      <div className="rounded-lg bg-blue-500/5 p-4 border border-blue-500/10">
+                        <p className="text-sm">
+                          On average, you spend <span className="font-medium">
+                            {Math.round((analytics.totalWorkMinutes / analytics.completedTasks) * 10) / 10}
+                          </span> minutes per completed task.
+                          {(analytics.totalWorkMinutes / analytics.completedTasks) > 45
+                            ? "Consider breaking down complex tasks into smaller ones for better focus."
+                            : "You're efficiently completing tasks in manageable time chunks."}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="p-6 text-center">
                 <p className="text-muted-foreground">
                   Task analytics will be available after you complete your first
                   task
                 </p>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="trends">
-          <Card>
-            <CardContent className="p-6 text-center">
-              {analytics && (analytics.totalWorkSessions > 10 || analytics.completedTasks > 10) ? (
-                <div className="py-12">
-                  <p className="text-muted-foreground mb-4">
-                    Trend analytics visualization coming soon
-                  </p>
-                  <Button variant="outline">
-                    <TrendingUp className="h-4 w-4 mr-2" />
-                    View Detailed Trends Report
-                  </Button>
-                </div>
-              ) : (
+          {analytics && (analytics.totalWorkSessions > 10 || analytics.completedTasks > 10) ? (
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Productivity Trends</CardTitle>
+                  <CardDescription>Your productivity patterns over time</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex flex-col space-y-2">
+                          <h3 className="text-lg font-medium">Focus Time</h3>
+                          <div className="flex items-center">
+                            <div className="text-2xl font-bold">
+                              {Math.round(analytics.totalWorkMinutes / 60 * 10) / 10}
+                            </div>
+                            <span className="text-sm text-muted-foreground ml-2">hours</span>
+
+                            {analytics.previousPeriodWorkMinutes && (
+                              <div className="ml-auto flex items-center">
+                                {analytics.totalWorkMinutes > analytics.previousPeriodWorkMinutes ? (
+                                  <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                                ) : (
+                                  <TrendingUp className="h-4 w-4 text-red-500 mr-1 rotate-180" />
+                                )}
+                                <span className="text-sm">
+                                  {Math.abs(Math.round((analytics.totalWorkMinutes - analytics.previousPeriodWorkMinutes) / analytics.previousPeriodWorkMinutes * 100))}%
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {timeRange === "week" ? "This week" : timeRange === "month" ? "This month" : "This year"}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex flex-col space-y-2">
+                          <h3 className="text-lg font-medium">Completed Tasks</h3>
+                          <div className="flex items-center">
+                            <div className="text-2xl font-bold">
+                              {analytics.completedTasks}
+                            </div>
+                            <span className="text-sm text-muted-foreground ml-2">tasks</span>
+
+                            {analytics.previousPeriodCompletedTasks && (
+                              <div className="ml-auto flex items-center">
+                                {analytics.completedTasks > analytics.previousPeriodCompletedTasks ? (
+                                  <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                                ) : (
+                                  <TrendingUp className="h-4 w-4 text-red-500 mr-1 rotate-180" />
+                                )}
+                                <span className="text-sm">
+                                  {Math.abs(Math.round((analytics.completedTasks - analytics.previousPeriodCompletedTasks) / analytics.previousPeriodCompletedTasks * 100))}%
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {timeRange === "week" ? "This week" : timeRange === "month" ? "This month" : "This year"}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Productivity Score</CardTitle>
+                  <CardDescription>Your overall productivity rating</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-col items-center justify-center py-6">
+                    <div className="relative h-36 w-36 mb-4">
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-4xl font-bold">
+                          {analytics.avgFocusScore || 0}
+                        </div>
+                      </div>
+                      <svg className="h-full w-full" viewBox="0 0 100 100">
+                        <circle
+                          className="text-muted stroke-current"
+                          strokeWidth="10"
+                          strokeLinecap="round"
+                          fill="transparent"
+                          r="40"
+                          cx="50"
+                          cy="50"
+                        />
+                        <circle
+                          className="text-primary stroke-current"
+                          strokeWidth="10"
+                          strokeLinecap="round"
+                          fill="transparent"
+                          r="40"
+                          cx="50"
+                          cy="50"
+                          strokeDasharray={`${2 * Math.PI * 40}`}
+                          strokeDashoffset={`${2 * Math.PI * 40 * (1 - (analytics.avgFocusScore || 0) / 100)}`}
+                          transform="rotate(-90 50 50)"
+                        />
+                      </svg>
+                    </div>
+                    <p className="text-center text-sm text-muted-foreground max-w-md">
+                      {analytics.avgFocusScore ? (
+                        analytics.avgFocusScore > 80 ? (
+                          "Excellent productivity! You're consistently maintaining focus and completing tasks efficiently."
+                        ) : analytics.avgFocusScore > 60 ? (
+                          "Good productivity. You're on the right track, but there's room for improvement in your focus sessions."
+                        ) : (
+                          "Your productivity score indicates there's significant room for improvement. Try to minimize interruptions and complete more focus sessions."
+                        )
+                      ) : (
+                        "Complete more focus sessions to calculate your productivity score."
+                      )}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>AI Productivity Recommendations</CardTitle>
+                  <CardDescription>Personalized suggestions to improve your productivity</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="rounded-lg bg-primary/5 p-4 border border-primary/10">
+                      <h3 className="text-sm font-medium mb-2">Optimize Your Schedule</h3>
+                      <p className="text-sm">
+                        Based on your productivity patterns, consider scheduling your most important tasks
+                        {analytics.mostProductiveTimeStart ?
+                          ` between ${format(new Date(analytics.mostProductiveTimeStart), 'h:mm a')} and ${format(new Date(analytics.mostProductiveTimeEnd), 'h:mm a')}` :
+                          " in the morning"} when your focus is at its peak.
+                      </p>
+                    </div>
+
+                    <div className="rounded-lg bg-blue-500/5 p-4 border border-blue-500/10">
+                      <h3 className="text-sm font-medium mb-2">Improve Your Focus</h3>
+                      <p className="text-sm">
+                        {analytics.avgFocusScore && analytics.avgFocusScore < 70 ?
+                          "Try to minimize interruptions during your focus sessions. Consider using the 'Do Not Disturb' mode on your devices." :
+                          "You're maintaining good focus during your sessions. To further improve, try increasing the duration of your focus sessions gradually."}
+                      </p>
+                    </div>
+
+                    <div className="rounded-lg bg-green-500/5 p-4 border border-green-500/10">
+                      <h3 className="text-sm font-medium mb-2">Task Management</h3>
+                      <p className="text-sm">
+                        {analytics.completedTasks > 20 ?
+                          "You're completing tasks efficiently. Consider categorizing your tasks by priority to focus on high-impact activities first." :
+                          "Break down larger tasks into smaller, manageable subtasks to make progress more visible and maintain motivation."}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="p-6 text-center">
                 <p className="text-muted-foreground">
                   Trend analytics will be available after you use the app for a
                   while
                 </p>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       )}
       </Tabs>

@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/ui/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { SettingsProvider } from "@/lib/contexts/settings-context";
 import { AccessibilityProvider } from "@/lib/contexts/accessibility-context";
+import { Analytics } from "@vercel/analytics/react";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -58,6 +59,7 @@ export default function RootLayout({
               <AccessibilityProvider>
                 <LayoutWrapper>{children}</LayoutWrapper>
                 <Toaster />
+                <Analytics />
               </AccessibilityProvider>
             </SettingsProvider>
           </AuthProvider>
