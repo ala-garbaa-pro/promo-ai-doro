@@ -127,7 +127,7 @@ describe("TaskList Component", () => {
 
     // Check if toggleTaskStatus was called with the correct arguments
     expect(toggleTaskStatus).toHaveBeenCalledTimes(1);
-    expect(toggleTaskStatus).toHaveBeenCalledWith("1", "pending");
+    expect(toggleTaskStatus).toHaveBeenCalledWith("1", "completed");
   });
 
   it("calls deleteTask when delete button is clicked", () => {

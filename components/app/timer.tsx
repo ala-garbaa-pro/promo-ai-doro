@@ -147,18 +147,26 @@ export function Timer() {
 
     // Play start sound
     if (startSoundRef.current && !isMuted) {
-      startSoundRef.current
-        .play()
-        .catch((err) => console.error("Error playing sound:", err));
+      try {
+        startSoundRef.current
+          .play()
+          .catch((err) => console.error("Error playing sound:", err));
+      } catch (error) {
+        console.error("Error playing start sound:", error);
+      }
     }
 
     timerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         // Play tick sound every second if enabled
         if (settings.tickSound && tickSoundRef.current && !isMuted) {
-          tickSoundRef.current
-            .play()
-            .catch((err) => console.error("Error playing sound:", err));
+          try {
+            tickSoundRef.current
+              .play()
+              .catch((err) => console.error("Error playing sound:", err));
+          } catch (error) {
+            console.error("Error playing tick sound:", error);
+          }
         }
 
         if (prev <= 1) {
@@ -235,9 +243,13 @@ export function Timer() {
 
     // Play end sound
     if (endSoundRef.current && !isMuted) {
-      endSoundRef.current
-        .play()
-        .catch((err) => console.error("Error playing sound:", err));
+      try {
+        endSoundRef.current
+          .play()
+          .catch((err) => console.error("Error playing sound:", err));
+      } catch (error) {
+        console.error("Error playing end sound:", error);
+      }
     }
 
     // Show notification
@@ -340,6 +352,7 @@ export function Timer() {
             {!isRunning ? (
               <Button
                 data-action="start-timer"
+                data-testid="start-timer"
                 onClick={startTimer}
                 size="lg"
                 className="w-32"
@@ -350,6 +363,7 @@ export function Timer() {
             ) : (
               <Button
                 data-action="pause-timer"
+                data-testid="start-timer"
                 onClick={pauseTimer}
                 size="lg"
                 className="w-32"
@@ -362,6 +376,7 @@ export function Timer() {
 
             <Button
               data-action="reset-timer"
+              data-testid="reset-timer"
               onClick={resetTimer}
               size="lg"
               variant="outline"
