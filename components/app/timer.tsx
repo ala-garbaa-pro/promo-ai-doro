@@ -1,14 +1,24 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/components/ui/use-toast";
 import { useSettings } from "@/lib/contexts/settings-context";
-import { Play, Pause, RotateCcw, Volume2, VolumeX } from "lucide-react";
+import {
+  Play,
+  Pause,
+  RotateCcw,
+  Volume2,
+  VolumeX,
+  Clock,
+  Calendar,
+  SkipForward,
+} from "lucide-react";
 import { AnimatedTransition } from "@/components/ui/animated-transition";
 import { useSessionRecording } from "@/hooks/use-session-recording";
+import { KeyboardShortcuts } from "@/components/ui/keyboard-shortcuts";
 
 type TimerMode = "pomodoro" | "short-break" | "long-break";
 
@@ -41,6 +51,50 @@ export function Timer() {
 
   // Timer interval ref
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Keyboard shortcuts handler
+  const handleKeyPress = useCallback(
+    (event: KeyboardEvent) => {
+      // Only handle shortcuts if accessibility settings allow it
+      if (!settings.accessibility?.keyboardShortcutsEnabled) return;
+
+      switch (event.key) {
+        case " ": // Space
+          event.preventDefault();
+          isRunning ? pauseTimer() : startTimer();
+          break;
+        case "r":
+          event.preventDefault();
+          resetTimer();
+          break;
+        case "m":
+          event.preventDefault();
+          toggleMute();
+          break;
+        case "f":
+          event.preventDefault();
+          setMode("pomodoro");
+          break;
+        case "s":
+          event.preventDefault();
+          setMode("short-break");
+          break;
+        case "l":
+          event.preventDefault();
+          setMode("long-break");
+          break;
+      }
+    },
+    [isRunning, settings.accessibility?.keyboardShortcutsEnabled]
+  );
+
+  // Add keyboard event listener
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyPress);
+    return () => {
+      document.removeEventListener("keydown", handleKeyPress);
+    };
+  }, [handleKeyPress]);
 
   // Initialize timer based on mode
   useEffect(() => {
@@ -343,27 +397,38 @@ export function Timer() {
               variant={mode === "pomodoro" ? "default" : "outline"}
               onClick={() => setMode("pomodoro")}
               className="flex-1"
+              aria-label="Focus mode"
+              title="Keyboard shortcut: F"
             >
-              Focus
+              <Clock className="h-4 w-4 mr-1 md:mr-2" />
+              <span>Focus</span>
             </Button>
             <Button
               variant={mode === "short-break" ? "default" : "outline"}
               onClick={() => setMode("short-break")}
               className="flex-1"
+              aria-label="Short break mode"
+              title="Keyboard shortcut: S"
             >
-              Short Break
+              <span>Short Break</span>
             </Button>
             <Button
               variant={mode === "long-break" ? "default" : "outline"}
               onClick={() => setMode("long-break")}
               className="flex-1"
+              aria-label="Long break mode"
+              title="Keyboard shortcut: L"
             >
-              Long Break
+              <span>Long Break</span>
             </Button>
           </div>
 
           <div className="text-center mb-6">
-            <div className="text-6xl font-bold mb-2">
+            <div
+              className="text-6xl font-bold mb-2"
+              aria-live="polite"
+              role="timer"
+            >
               {formatTime(timeLeft)}
             </div>
             <div className="text-sm text-muted-foreground">
@@ -373,9 +438,18 @@ export function Timer() {
                 ? "Take a short break"
                 : "Take a long break"}
             </div>
+            <div className="text-xs text-muted-foreground mt-2">
+              {completedPomodoros > 0 && (
+                <span>Completed: {completedPomodoros} pomodoros</span>
+              )}
+            </div>
           </div>
 
-          <Progress value={calculateProgress()} className="mb-6" />
+          <Progress
+            value={calculateProgress()}
+            className="mb-6"
+            aria-label={`Timer progress: ${Math.round(calculateProgress())}%`}
+          />
 
           <div className="flex justify-center space-x-4">
             {!isRunning ? (
@@ -385,6 +459,8 @@ export function Timer() {
                 onClick={startTimer}
                 size="lg"
                 className="w-32"
+                aria-label="Start timer"
+                title="Keyboard shortcut: Space"
               >
                 <Play className="h-5 w-5 mr-2" />
                 Start
@@ -397,6 +473,8 @@ export function Timer() {
                 size="lg"
                 className="w-32"
                 variant="secondary"
+                aria-label="Pause timer"
+                title="Keyboard shortcut: Space"
               >
                 <Pause className="h-5 w-5 mr-2" />
                 Pause
@@ -410,12 +488,20 @@ export function Timer() {
               size="lg"
               variant="outline"
               className="w-32"
+              aria-label="Reset timer"
+              title="Keyboard shortcut: R"
             >
               <RotateCcw className="h-5 w-5 mr-2" />
               Reset
             </Button>
 
-            <Button onClick={toggleMute} size="icon" variant="ghost">
+            <Button
+              onClick={toggleMute}
+              size="icon"
+              variant="ghost"
+              aria-label={isMuted ? "Unmute" : "Mute"}
+              title="Keyboard shortcut: M"
+            >
               {isMuted ? (
                 <VolumeX className="h-5 w-5" />
               ) : (
@@ -424,9 +510,19 @@ export function Timer() {
             </Button>
           </div>
 
-          <div className="text-center mt-6 text-sm text-muted-foreground">
-            Completed: {completedPomodoros} pomodoros
-          </div>
+          {settings.accessibility?.keyboardShortcutsEnabled && (
+            <div className="mt-6 text-xs text-muted-foreground">
+              <p className="text-center mb-2">Keyboard Shortcuts</p>
+              <div className="grid grid-cols-2 gap-2">
+                <div>Space: Start/Pause</div>
+                <div>R: Reset</div>
+                <div>M: Mute/Unmute</div>
+                <div>F: Focus mode</div>
+                <div>S: Short break</div>
+                <div>L: Long break</div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </AnimatedTransition>

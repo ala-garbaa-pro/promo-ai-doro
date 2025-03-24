@@ -173,6 +173,7 @@ export function KeyboardShortcutsButton() {
 
       <KeyboardShortcutsDialog
         shortcuts={[
+          // Global navigation shortcuts
           {
             key: "?",
             description: "Show keyboard shortcuts",
@@ -198,16 +199,59 @@ export function KeyboardShortcutsButton() {
             global: true,
           },
           {
-            key: "g+c",
-            description: "Go to calendar",
-            action: () => {},
-            global: true,
-          },
-          {
             key: "g+s",
             description: "Go to settings",
             action: () => {},
             global: true,
+          },
+
+          // Timer shortcuts
+          {
+            key: "Space",
+            description: "Start or pause timer",
+            action: () => {},
+          },
+          {
+            key: "r",
+            description: "Reset timer",
+            action: () => {},
+          },
+          {
+            key: "m",
+            description: "Toggle mute",
+            action: () => {},
+          },
+          {
+            key: "f",
+            description: "Switch to focus mode",
+            action: () => {},
+          },
+          {
+            key: "s",
+            description: "Switch to short break",
+            action: () => {},
+          },
+          {
+            key: "l",
+            description: "Switch to long break",
+            action: () => {},
+          },
+
+          // Task shortcuts
+          {
+            key: "n",
+            description: "New task",
+            action: () => {},
+          },
+          {
+            key: "d",
+            description: "Mark selected task as done",
+            action: () => {},
+          },
+          {
+            key: "Delete",
+            description: "Delete selected task",
+            action: () => {},
           },
         ]}
         showDialog={showDialog}

@@ -28,6 +28,17 @@ export interface TimerSettings {
   contextSwitchingMinimization: boolean;
 }
 
+export interface AccessibilitySettings {
+  keyboardShortcutsEnabled: boolean;
+  highContrastMode: boolean;
+  reducedMotion: boolean;
+  largeText: boolean;
+  screenReaderOptimized: boolean;
+  colorBlindMode: "none" | "protanopia" | "deuteranopia" | "tritanopia";
+  focusIndicators: boolean;
+  tabNavigation: boolean;
+}
+
 export interface NotificationSettings {
   soundEnabled: boolean;
   desktopNotificationsEnabled: boolean;
@@ -71,13 +82,7 @@ export interface AppSettings {
   timer: TimerSettings;
   notification: NotificationSettings;
   theme: ThemeSettings;
-  accessibility: {
-    highContrastMode: boolean;
-    reducedMotion: boolean;
-    largeText: boolean;
-    keyboardShortcutsEnabled: boolean;
-    screenReaderAnnouncements: boolean;
-  };
+  accessibility: AccessibilitySettings;
 }
 
 // Default settings
@@ -143,11 +148,14 @@ export const defaultSettings: AppSettings = {
     showProgressBar: true,
   },
   accessibility: {
+    keyboardShortcutsEnabled: true,
     highContrastMode: false,
     reducedMotion: false,
     largeText: false,
-    keyboardShortcutsEnabled: true,
-    screenReaderAnnouncements: true,
+    screenReaderOptimized: true,
+    colorBlindMode: "none",
+    focusIndicators: true,
+    tabNavigation: true,
   },
 };
 
@@ -158,7 +166,7 @@ interface SettingsContextType {
   updateNotificationSettings: (settings: Partial<NotificationSettings>) => void;
   updateThemeSettings: (settings: Partial<ThemeSettings>) => void;
   updateAccessibilitySettings: (
-    settings: Partial<AppSettings["accessibility"]>
+    settings: Partial<AccessibilitySettings>
   ) => void;
   resetSettings: () => void;
   saveSettings: () => void;
@@ -248,7 +256,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
   // Update accessibility settings
   const updateAccessibilitySettings = (
-    newSettings: Partial<AppSettings["accessibility"]>
+    newSettings: Partial<AccessibilitySettings>
   ) => {
     setSettings((prev) => ({
       ...prev,
