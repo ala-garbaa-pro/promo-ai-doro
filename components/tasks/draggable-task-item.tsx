@@ -34,6 +34,9 @@ interface DraggableTaskItemProps {
   toggleTaskStatus: (taskId: string, status: TaskStatus) => void;
   deleteTask: (taskId: string) => void;
   openTaskDetails: (task: Task) => void;
+  isSelected?: boolean;
+  onToggleSelect?: () => void;
+  isDragDisabled?: boolean;
 }
 
 export function DraggableTaskItem({
@@ -44,11 +47,15 @@ export function DraggableTaskItem({
   toggleTaskStatus,
   deleteTask,
   openTaskDetails,
+  isSelected = false,
+  onToggleSelect,
+  isDragDisabled = false,
 }: DraggableTaskItemProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   // Set up drag source
   const [{ isDragging }, drag, preview] = useDrag({
+    canDrag: !isDragDisabled,
     type: ITEM_TYPE,
     item: { index },
     collect: (monitor) => ({
@@ -153,18 +160,51 @@ export function DraggableTaskItem({
       ref={preview}
       className={cn(
         "p-4 hover:bg-accent/50 transition-colors",
-        isDragging && "opacity-50 bg-accent/50"
+        isDragging && "opacity-50 bg-accent/50",
+        isSelected && "bg-accent/70"
       )}
       data-handler-id={handlerId}
     >
       <div className="flex items-start gap-3">
-        {/* Drag handle */}
-        <div
-          ref={ref}
-          className="mt-1 cursor-move touch-none flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <GripVertical className="h-5 w-5" />
-        </div>
+        {/* Selection checkbox or drag handle */}
+        {onToggleSelect ? (
+          <div className="mt-1 flex-shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
+                "h-5 w-5 p-0",
+                isSelected
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+              onClick={onToggleSelect}
+            >
+              <div
+                className={cn(
+                  "h-4 w-4 rounded-sm border",
+                  isSelected
+                    ? "bg-primary border-primary"
+                    : "border-muted-foreground"
+                )}
+              >
+                {isSelected && (
+                  <CheckCircle2 className="h-3 w-3 text-primary-foreground" />
+                )}
+              </div>
+            </Button>
+          </div>
+        ) : (
+          <div
+            ref={ref}
+            className={cn(
+              "mt-1 touch-none flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors",
+              isDragDisabled ? "cursor-default" : "cursor-move"
+            )}
+          >
+            <GripVertical className="h-5 w-5" />
+          </div>
+        )}
 
         {/* Status toggle */}
         <button
