@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start --port 4003",
     "lint": "next lint",
-    "test": "jest __tests__/components/tasks/task-list.test.tsx __tests__/components/ui/button.test.tsx __tests__/__mocks__/ui-components.test.tsx __tests__/components/tasks/task-template-selector.test.tsx",
+    "test": "jest __tests__/components/tasks/task-list.test.tsx __tests__/components/ui/button.test.tsx __tests__/__mocks__/ui-components.test.tsx __tests__/components/tasks/task-template-selector.test.tsx __tests__/natural-language-parser.test.ts",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "cypress": "cypress open",
@@ -46,6 +46,7 @@
     "recharts": "^2.15.1",
     "tailwind-merge": "^3.0.2",
     "tailwindcss-animate": "^1.0.7",
+    "vitest": "^3.0.9",
     "zod": "^3.24.2"
   },
   "devDependencies": {

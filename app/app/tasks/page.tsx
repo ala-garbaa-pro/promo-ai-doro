@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Link from "next/link";
 import {
   Plus,
   Clock,
@@ -276,38 +277,49 @@ export default function TasksPage() {
       </div>
 
       <div className="mb-8">
-        <div className="flex gap-2">
-          <div className="flex-1 relative">
-            <div className="absolute right-2 top-2">
-              <TaskInputHelp />
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2">
+            <div className="flex-1 relative">
+              <div className="absolute right-2 top-2">
+                <TaskInputHelp />
+              </div>
+              <Input
+                type="text"
+                placeholder="Add a new task... (e.g., 'Call John tomorrow at 3pm p1 #work')"
+                value={newTaskTitle}
+                onChange={(e) => setNewTaskTitle(e.target.value)}
+                className="focus-visible:ring-primary pr-10"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleAddTask();
+                  }
+                }}
+              />
+              <TaskInputPreview input={newTaskTitle} />
             </div>
-            <Input
-              type="text"
-              placeholder="Add a new task... (e.g., 'Call John tomorrow at 3pm p1 #work')"
-              value={newTaskTitle}
-              onChange={(e) => setNewTaskTitle(e.target.value)}
-              className="focus-visible:ring-primary pr-10"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleAddTask();
-                }
-              }}
+            <TaskTemplateSelector
+              onSelectTemplate={(templateText) => setNewTaskTitle(templateText)}
             />
-            <TaskInputPreview input={newTaskTitle} />
+            <Button onClick={handleAddTask} disabled={isCreating} className="">
+              {isCreating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                "Add"
+              )}
+            </Button>
           </div>
-          <TaskTemplateSelector
-            onSelectTemplate={(templateText) => setNewTaskTitle(templateText)}
-          />
-          <Button onClick={handleAddTask} disabled={isCreating} className="">
-            {isCreating ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Adding...
-              </>
-            ) : (
-              "Add"
-            )}
-          </Button>
+          <div className="flex justify-end">
+            <Link
+              href="/app/tasks/natural-language"
+              className="text-sm text-primary hover:underline flex items-center gap-1"
+            >
+              <HelpCircle className="h-3 w-3" />
+              Try our new natural language input
+            </Link>
+          </div>
         </div>
       </div>
 

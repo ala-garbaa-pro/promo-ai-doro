@@ -170,6 +170,11 @@ export const tasks = pgTable("tasks", {
     onDelete: "set null",
   }),
   order: integer("order").default(0),
+  naturalLanguageInput: text("natural_language_input"),
+  aiEstimatedPomodoros: integer("ai_estimated_pomodoros"),
+  complexity: integer("complexity").default(2), // 1-5 scale
+  energyRequired: integer("energy_required").default(2), // 1-5 scale
+  lastWorkedOn: timestamp("last_worked_on"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
