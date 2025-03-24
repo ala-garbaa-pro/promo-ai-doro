@@ -120,7 +120,7 @@ export function estimateTaskComplexity(task: Task): TaskComplexity {
     for (const keyword of complexityKeywords) {
       if (lowerTitle.includes(keyword)) {
         complexityScore += 1;
-        break; // Only count once even if multiple keywords match
+        // Count each keyword match separately
       }
     }
   }

@@ -1,6 +1,12 @@
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  act,
+  waitFor,
+} from "@testing-library/react";
 import { TaskItem } from "@/components/tasks/task-item";
 import { Task } from "@/hooks/use-tasks";
 
@@ -71,61 +77,78 @@ describe("TaskItem Component (Simple)", () => {
   });
 
   it("renders task title and description", async () => {
-    render(
-      <TaskItem
-        task={mockTask}
-        toggleTaskStatus={toggleTaskStatus}
-        deleteTask={deleteTask}
-        openTaskDetails={openTaskDetails}
-      />
-    );
+    await act(async () => {
+      render(
+        <TaskItem
+          task={mockTask}
+          toggleTaskStatus={toggleTaskStatus}
+          deleteTask={deleteTask}
+          openTaskDetails={openTaskDetails}
+        />
+      );
+    });
 
-    expect(screen.getByText("Test Task")).toBeInTheDocument();
-    expect(
-      screen.getByText("This is a test task description")
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("Test Task")).toBeInTheDocument();
+      expect(
+        screen.getByText("This is a test task description")
+      ).toBeInTheDocument();
+    });
   });
 
   it("renders task priority", async () => {
-    render(
-      <TaskItem
-        task={mockTask}
-        toggleTaskStatus={toggleTaskStatus}
-        deleteTask={deleteTask}
-        openTaskDetails={openTaskDetails}
-      />
-    );
+    await act(async () => {
+      render(
+        <TaskItem
+          task={mockTask}
+          toggleTaskStatus={toggleTaskStatus}
+          deleteTask={deleteTask}
+          openTaskDetails={openTaskDetails}
+        />
+      );
+    });
 
-    expect(screen.getByText("medium")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("medium")).toBeInTheDocument();
+    });
   });
 
   it("renders estimated pomodoros", async () => {
-    render(
-      <TaskItem
-        task={mockTask}
-        toggleTaskStatus={toggleTaskStatus}
-        deleteTask={deleteTask}
-        openTaskDetails={openTaskDetails}
-      />
-    );
+    await act(async () => {
+      render(
+        <TaskItem
+          task={mockTask}
+          toggleTaskStatus={toggleTaskStatus}
+          deleteTask={deleteTask}
+          openTaskDetails={openTaskDetails}
+        />
+      );
+    });
 
-    // Use a regex to match the text that contains both "2" and "pomodoros"
-    expect(screen.getByText(/2.*pomodoros/)).toBeInTheDocument();
+    await waitFor(() => {
+      // Use a regex to match the text that contains both "2" and "pomodoros"
+      expect(screen.getByText(/2.*pomodoros/)).toBeInTheDocument();
+    });
   });
 
   it("calls toggleTaskStatus when status button is clicked", async () => {
-    render(
-      <TaskItem
-        task={mockTask}
-        toggleTaskStatus={toggleTaskStatus}
-        deleteTask={deleteTask}
-        openTaskDetails={openTaskDetails}
-      />
-    );
+    await act(async () => {
+      render(
+        <TaskItem
+          task={mockTask}
+          toggleTaskStatus={toggleTaskStatus}
+          deleteTask={deleteTask}
+          openTaskDetails={openTaskDetails}
+        />
+      );
+    });
 
     // Find the status button (first button in the component)
-    const buttons = screen.getAllByRole("button");
-    fireEvent.click(buttons[0]);
+    const buttons = await screen.findAllByRole("button");
+
+    await act(async () => {
+      fireEvent.click(buttons[0]);
+    });
 
     expect(toggleTaskStatus).toHaveBeenCalledTimes(1);
     expect(toggleTaskStatus).toHaveBeenCalledWith("task-1", "pending");

@@ -1,6 +1,12 @@
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  act,
+  waitFor,
+} from "@testing-library/react";
 import { TaskItem } from "@/components/tasks/task-item";
 import { Task } from "@/hooks/use-tasks";
 
@@ -13,6 +19,35 @@ vi.mock("@/components/tasks/task-category-badge", () => ({
       ))}
     </div>
   ),
+}));
+
+// Mock fetch for API calls
+global.fetch = vi.fn().mockImplementation(() =>
+  Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve([{ id: "work" }, { id: "personal" }]),
+  })
+);
+
+// Mock the DropdownMenu component
+vi.mock("@/components/ui/dropdown-menu", () => ({
+  DropdownMenu: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  DropdownMenuTrigger: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  DropdownMenuContent: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  DropdownMenuItem: ({
+    children,
+    onClick,
+  }: {
+    children: React.ReactNode;
+    onClick?: () => void;
+  }) => <button onClick={onClick}>{children}</button>,
+  DropdownMenuSeparator: () => <hr />,
 }));
 
 // Mock fetch for API calls
@@ -46,104 +81,141 @@ describe("TaskItem Component", () => {
   });
 
   it("renders task title and description", async () => {
-    render(
-      <TaskItem
-        task={mockTask}
-        toggleTaskStatus={toggleTaskStatus}
-        deleteTask={deleteTask}
-        openTaskDetails={openTaskDetails}
-      />
-    );
+    await act(async () => {
+      render(
+        <TaskItem
+          task={mockTask}
+          toggleTaskStatus={toggleTaskStatus}
+          deleteTask={deleteTask}
+          openTaskDetails={openTaskDetails}
+        />
+      );
+    });
 
-    expect(screen.getByText("Test Task")).toBeInTheDocument();
-    expect(
-      screen.getByText("This is a test task description")
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("Test Task")).toBeInTheDocument();
+      expect(
+        screen.getByText("This is a test task description")
+      ).toBeInTheDocument();
+    });
   });
 
   it("renders task priority", async () => {
-    render(
-      <TaskItem
-        task={mockTask}
-        toggleTaskStatus={toggleTaskStatus}
-        deleteTask={deleteTask}
-        openTaskDetails={openTaskDetails}
-      />
-    );
+    await act(async () => {
+      render(
+        <TaskItem
+          task={mockTask}
+          toggleTaskStatus={toggleTaskStatus}
+          deleteTask={deleteTask}
+          openTaskDetails={openTaskDetails}
+        />
+      );
+    });
 
-    expect(screen.getByText("medium")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("medium")).toBeInTheDocument();
+    });
   });
 
   it("renders estimated pomodoros", async () => {
-    render(
-      <TaskItem
-        task={mockTask}
-        toggleTaskStatus={toggleTaskStatus}
-        deleteTask={deleteTask}
-        openTaskDetails={openTaskDetails}
-      />
-    );
+    await act(async () => {
+      render(
+        <TaskItem
+          task={mockTask}
+          toggleTaskStatus={toggleTaskStatus}
+          deleteTask={deleteTask}
+          openTaskDetails={openTaskDetails}
+        />
+      );
+    });
 
-    expect(screen.getByText("2 pomodoros")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("2 pomodoros")).toBeInTheDocument();
+    });
   });
 
   it("calls toggleTaskStatus when status icon is clicked", async () => {
-    render(
-      <TaskItem
-        task={mockTask}
-        toggleTaskStatus={toggleTaskStatus}
-        deleteTask={deleteTask}
-        openTaskDetails={openTaskDetails}
-      />
-    );
+    await act(async () => {
+      render(
+        <TaskItem
+          task={mockTask}
+          toggleTaskStatus={toggleTaskStatus}
+          deleteTask={deleteTask}
+          openTaskDetails={openTaskDetails}
+        />
+      );
+    });
 
     // Find the status button and click it
-    const statusButton = screen.getByRole("button", { name: "" });
-    fireEvent.click(statusButton);
+    const statusButton = await screen.findByRole("button", { name: "" });
+
+    await act(async () => {
+      fireEvent.click(statusButton);
+    });
 
     expect(toggleTaskStatus).toHaveBeenCalledTimes(1);
     expect(toggleTaskStatus).toHaveBeenCalledWith("task-1", "pending");
   });
 
   it("opens dropdown menu and calls deleteTask when delete option is clicked", async () => {
-    render(
-      <TaskItem
-        task={mockTask}
-        toggleTaskStatus={toggleTaskStatus}
-        deleteTask={deleteTask}
-        openTaskDetails={openTaskDetails}
-      />
-    );
+    await act(async () => {
+      render(
+        <TaskItem
+          task={mockTask}
+          toggleTaskStatus={toggleTaskStatus}
+          deleteTask={deleteTask}
+          openTaskDetails={openTaskDetails}
+        />
+      );
+    });
 
     // Open the dropdown menu
-    const menuButton = screen.getByRole("button", { name: "Task options" });
-    fireEvent.click(menuButton);
+    const menuButton = await screen.findByRole("button", {
+      name: "Task options",
+    });
+
+    await act(async () => {
+      fireEvent.click(menuButton);
+    });
 
     // Click the delete option
-    const deleteOption = screen.getByText("Delete");
-    fireEvent.click(deleteOption);
+    const deleteOption = await screen.findByText(/Delete/i);
+
+    await act(async () => {
+      fireEvent.click(deleteOption);
+    });
 
     expect(deleteTask).toHaveBeenCalledTimes(1);
     expect(deleteTask).toHaveBeenCalledWith("task-1");
   });
 
   it("opens dropdown menu and calls openTaskDetails when edit option is clicked", async () => {
-    render(
-      <TaskItem
-        task={mockTask}
-        toggleTaskStatus={toggleTaskStatus}
-        deleteTask={deleteTask}
-        openTaskDetails={openTaskDetails}
-      />
-    );
+    await act(async () => {
+      render(
+        <TaskItem
+          task={mockTask}
+          toggleTaskStatus={toggleTaskStatus}
+          deleteTask={deleteTask}
+          openTaskDetails={openTaskDetails}
+        />
+      );
+    });
 
     // Open the dropdown menu
-    const menuButton = screen.getByRole("button", { name: "Task options" });
-    fireEvent.click(menuButton);
+    const menuButton = await screen.findByRole("button", {
+      name: "Task options",
+    });
+
+    await act(async () => {
+      fireEvent.click(menuButton);
+    });
 
     // Click the edit option
-    const editOption = screen.getByText("Edit Task");
-    fireEvent.click(editOption);
+    const editOption = await screen.findByText(/Edit Task/i);
+
+    await act(async () => {
+      fireEvent.click(editOption);
+    });
 
     expect(openTaskDetails).toHaveBeenCalledTimes(1);
     expect(openTaskDetails).toHaveBeenCalledWith(mockTask);
