@@ -62,10 +62,30 @@ pnpm migrate:task-order
 
 ### Testing
 
-```bash
-# Run unit tests
-pnpm test
+Pomo AI-doro uses a comprehensive testing strategy with multiple testing frameworks:
 
-# Run end-to-end tests
-pnpm test:e2e
+```bash
+# Jest tests
+pnpm test                # Run all Jest tests
+pnpm test:watch          # Run Jest tests in watch mode
+pnpm test:coverage       # Run Jest tests with coverage report
+
+# Vitest tests
+pnpm test:vitest         # Run all Vitest tests
+pnpm test:vitest:watch   # Run Vitest tests in watch mode
+pnpm test:vitest:coverage # Run Vitest tests with coverage report
+
+# Playwright tests
+pnpm test:playwright     # Run all Playwright tests
+pnpm test:playwright:ui  # Run Playwright tests with UI
+
+# Cypress tests
+pnpm cypress             # Open Cypress test runner
+pnpm test:e2e            # Run Cypress E2E tests
+pnpm test:e2e:headless   # Run Cypress E2E tests headlessly
+
+# Run all tests
+pnpm test:all            # Run all tests (Jest, Vitest, Playwright)
 ```
+
+For more details on our testing strategy, see [\_planning/test-strategy.md](./_planning/test-strategy.md).
