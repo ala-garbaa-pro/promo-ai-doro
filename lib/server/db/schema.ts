@@ -10,8 +10,11 @@ import {
   boolean,
   json,
   pgEnum,
-  float,
+  doublePrecision,
 } from "drizzle-orm/pg-core";
+
+// Use doublePrecision instead of float
+const float = doublePrecision;
 
 // Enums
 export const sessionTypeEnum = pgEnum("session_type", [

@@ -88,6 +88,14 @@ export async function PATCH(
       );
     }
 
+    // If isDefault is true, update all other templates to not be default
+    if (body.isDefault) {
+      await db
+        .update(taskTemplates)
+        .set({ isDefault: false })
+        .where(eq(taskTemplates.userId, userId));
+    }
+
     // Update template
     const [updatedTemplate] = await db
       .update(taskTemplates)

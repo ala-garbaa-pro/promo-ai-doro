@@ -61,6 +61,8 @@ export async function POST(request: NextRequest) {
       isRecurring,
       recurringType,
       recurringInterval,
+      taskText,
+      isDefault,
     } = body;
 
     // Validate required fields
@@ -82,6 +84,8 @@ export async function POST(request: NextRequest) {
         isRecurring,
         recurringType,
         recurringInterval,
+        taskText,
+        isDefault: isDefault || false,
       })
       .returning();
 

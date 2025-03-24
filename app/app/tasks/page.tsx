@@ -47,6 +47,7 @@ import { TaskListEnhanced } from "@/components/tasks/task-list-enhanced";
 import { DraggableTaskList } from "@/components/tasks/draggable-task-list";
 import { TaskInputPreview } from "@/components/tasks/task-input-preview";
 import { TaskInputHelp } from "@/components/tasks/task-input-help";
+import { TaskTemplateSelector } from "@/components/tasks/task-template-selector";
 import { parseTaskInput } from "@/lib/utils/task-parser";
 
 export default function TasksPage() {
@@ -294,6 +295,9 @@ export default function TasksPage() {
             />
             <TaskInputPreview input={newTaskTitle} />
           </div>
+          <TaskTemplateSelector
+            onSelectTemplate={(templateText) => setNewTaskTitle(templateText)}
+          />
           <Button onClick={handleAddTask} disabled={isCreating} className="">
             {isCreating ? (
               <>

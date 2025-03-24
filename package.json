@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start --port 4003",
     "lint": "next lint",
-    "test": "jest __tests__/components/tasks/task-list.test.tsx __tests__/components/ui/button.test.tsx __tests__/__mocks__/ui-components.test.tsx",
+    "test": "jest __tests__/components/tasks/task-list.test.tsx __tests__/components/ui/button.test.tsx __tests__/__mocks__/ui-components.test.tsx __tests__/components/tasks/task-template-selector.test.tsx",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "cypress": "cypress open",

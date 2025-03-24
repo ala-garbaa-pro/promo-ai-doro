@@ -6,6 +6,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { RunMigrationButton } from "@/components/admin/run-migration-button";
+import { RunTaskTextMigrationButton } from "@/components/admin/run-task-text-migration-button";
 import { auth } from "@/lib/auth/better-auth";
 import { redirect } from "next/navigation";
 
@@ -53,6 +54,7 @@ export default async function AdminPage() {
                 migrationType="taskTemplates"
                 label="Run Task Templates Migration"
               />
+              <RunTaskTextMigrationButton />
             </div>
           </CardContent>
         </Card>

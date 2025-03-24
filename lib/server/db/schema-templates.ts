@@ -28,6 +28,8 @@ export const taskTemplates = pgTable("task_templates", {
   isRecurring: boolean("is_recurring").default(false),
   recurringType: varchar("recurring_type", { length: 50 }),
   recurringInterval: integer("recurring_interval"),
+  taskText: text("task_text"),
+  isDefault: boolean("is_default").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

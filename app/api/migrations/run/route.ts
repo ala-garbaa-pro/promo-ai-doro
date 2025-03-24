@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth/better-auth";
 import { headers } from "next/headers";
 import { runMigration as runTaskCategoriesMigration } from "@/lib/server/db/migrations/add-task-categories-junction";
 import { runMigration as runTaskTemplatesMigration } from "@/lib/server/db/migrations/add-task-templates";
+import { runMigration as runTaskTextTemplatesMigration } from "@/lib/server/db/migrations/add-task-text-to-templates";
 
 // POST /api/migrations/run - Run database migrations
 export async function POST(request: NextRequest) {
@@ -31,6 +32,9 @@ export async function POST(request: NextRequest) {
     if (migrationType === "taskTemplates") {
       // Run task templates migration
       await runTaskTemplatesMigration();
+    } else if (migrationType === "taskTextTemplates") {
+      // Run task text templates migration
+      await runTaskTextTemplatesMigration();
     } else {
       // Default to task categories migration
       await runTaskCategoriesMigration();
