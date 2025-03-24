@@ -8,3 +8,5 @@ Together, these tools offer a balanced strategy for optimizing both time managem
 3. **Document** the proposed plan in a file named "Anumber" within the _planning folder.  
 
 4. **Execute** the next logical step from the plan immediately without seeking further permission.
+
+5. **Test** the app is buggy add test to make sure all parts are working without seeking further permission and run tests.

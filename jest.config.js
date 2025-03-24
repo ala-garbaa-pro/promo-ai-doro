@@ -13,7 +13,9 @@ const customJestConfig = {
     // Handle module aliases (this will be automatically configured for you soon)
     '^@/(.*)$': '<rootDir>/$1',
     // Mock UI components for tests
-    '^@/components/ui/(.*)$': '<rootDir>/lib/test-utils/ui-components-mock.tsx',
+    '^@/components/ui/(.*)$': '<rootDir>/__tests__/__mocks__/ui-components.tsx',
+    // Mock focus mode context for tests
+    '^@/lib/contexts/focus-mode-context$': '<rootDir>/__tests__/__mocks__/focus-mode-context.tsx',
   },
   testPathIgnorePatterns: [
     '<rootDir>/node_modules/',
