@@ -68,22 +68,27 @@ export function Timer() {
     }
 
     // Initialize audio elements
-    if (!startSoundRef.current) {
-      startSoundRef.current = new Audio("/sounds/start.mp3");
-    }
+    try {
+      if (!startSoundRef.current) {
+        startSoundRef.current = new Audio("/sounds/start.mp3");
+      }
 
-    if (!endSoundRef.current) {
-      endSoundRef.current = new Audio("/sounds/complete.mp3");
-    }
+      if (!endSoundRef.current) {
+        endSoundRef.current = new Audio("/sounds/complete.mp3");
+      }
 
-    if (!tickSoundRef.current) {
-      tickSoundRef.current = new Audio("/sounds/tick.mp3");
+      if (!tickSoundRef.current) {
+        tickSoundRef.current = new Audio("/sounds/tick.mp3");
+      }
+    } catch (error) {
+      console.error("Error initializing audio elements:", error);
+      // Continue without audio if initialization fails
     }
 
     // Set volume based on mute state
-    startSoundRef.current.volume = isMuted ? 0 : 0.5;
-    endSoundRef.current.volume = isMuted ? 0 : 0.5;
-    tickSoundRef.current.volume = isMuted ? 0 : 0.2;
+    if (startSoundRef.current) startSoundRef.current.volume = isMuted ? 0 : 0.5;
+    if (endSoundRef.current) endSoundRef.current.volume = isMuted ? 0 : 0.5;
+    if (tickSoundRef.current) tickSoundRef.current.volume = isMuted ? 0 : 0.2;
 
     // Update document title
     updateDocumentTitle(duration);
@@ -148,22 +153,39 @@ export function Timer() {
     // Play start sound
     if (startSoundRef.current && !isMuted) {
       try {
-        startSoundRef.current
-          .play()
-          .catch((err) => console.error("Error playing sound:", err));
+        const playPromise = startSoundRef.current.play();
+
+        // Handle browsers where play() returns a promise
+        if (playPromise !== undefined) {
+          playPromise.catch((err) => {
+            console.error("Error playing sound:", err);
+            // Continue timer operation even if sound fails
+          });
+        }
       } catch (error) {
         console.error("Error playing start sound:", error);
+        // Continue timer operation even if sound fails
       }
     }
 
     timerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         // Play tick sound every second if enabled
-        if (settings.tickSound && tickSoundRef.current && !isMuted) {
+        if (
+          settings.notification?.tickSound &&
+          tickSoundRef.current &&
+          !isMuted
+        ) {
           try {
-            tickSoundRef.current
-              .play()
-              .catch((err) => console.error("Error playing sound:", err));
+            const tickPromise = tickSoundRef.current.play();
+
+            // Handle browsers where play() returns a promise
+            if (tickPromise !== undefined) {
+              tickPromise.catch((err) => {
+                // Just log and continue - don't let sound errors affect timer
+                console.error("Error playing tick sound:", err);
+              });
+            }
           } catch (error) {
             console.error("Error playing tick sound:", error);
           }
@@ -244,11 +266,18 @@ export function Timer() {
     // Play end sound
     if (endSoundRef.current && !isMuted) {
       try {
-        endSoundRef.current
-          .play()
-          .catch((err) => console.error("Error playing sound:", err));
+        const endPromise = endSoundRef.current.play();
+
+        // Handle browsers where play() returns a promise
+        if (endPromise !== undefined) {
+          endPromise.catch((err) => {
+            console.error("Error playing end sound:", err);
+            // Continue even if sound fails
+          });
+        }
       } catch (error) {
         console.error("Error playing end sound:", error);
+        // Continue even if sound fails
       }
     }
 
@@ -363,7 +392,7 @@ export function Timer() {
             ) : (
               <Button
                 data-action="pause-timer"
-                data-testid="start-timer"
+                data-testid="pause-timer"
                 onClick={pauseTimer}
                 size="lg"
                 className="w-32"
