@@ -89,48 +89,8 @@ jest.mock("next/server", () => {
 import { GET, POST } from "@/app/api/tasks/route";
 import { GET as GET_TASK, PATCH, DELETE } from "@/app/api/tasks/[id]/route";
 
-// Create a mock NextRequest
-class MockNextRequest {
-  url: string;
-  method: string;
-  body: any;
-  headers: Headers;
-  nextUrl: URL;
-
-  constructor(
-    url: string,
-    options: { method?: string; body?: any; headers?: Headers } = {}
-  ) {
-    this.url = url;
-    this.method = options.method || "GET";
-    this.body = options.body;
-    this.headers = options.headers || new Headers();
-    this.nextUrl = new URL(url);
-  }
-
-  async json() {
-    return this.body;
-  }
-}
-
-// Create a mock NextResponse
-class MockNextResponse {
-  status: number;
-  body: any;
-
-  constructor(body: any, options: { status?: number } = {}) {
-    this.body = body;
-    this.status = options.status || 200;
-  }
-
-  static json(body: any, options: { status?: number } = {}) {
-    return new MockNextResponse(body, options);
-  }
-
-  async json() {
-    return this.body;
-  }
-}
+// Import NextRequest from next/server
+import { NextRequest } from "next/server";
 
 describe("Tasks API - Simple Tests", () => {
   beforeEach(() => {
@@ -142,8 +102,8 @@ describe("Tasks API - Simple Tests", () => {
       // Mock auth to return no session
       mockGetSession.mockResolvedValue(null);
 
-      const request = new MockNextRequest("http://localhost:3000/api/tasks");
-      const response = await GET(request as any);
+      const request = new NextRequest("http://localhost:3000/api/tasks");
+      const response = await GET(request);
 
       expect(response.status).toBe(401);
       const data = await response.json();
@@ -168,8 +128,8 @@ describe("Tasks API - Simple Tests", () => {
 
       mockSelect.mockReturnValue({ from: mockFrom });
 
-      const request = new MockNextRequest("http://localhost:3000/api/tasks");
-      const response = await GET(request as any);
+      const request = new NextRequest("http://localhost:3000/api/tasks");
+      const response = await GET(request);
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -253,12 +213,10 @@ describe("Tasks API - Simple Tests", () => {
       // Mock auth to return no session
       mockGetSession.mockResolvedValue(null);
 
-      const request = new MockNextRequest(
-        "http://localhost:3000/api/tasks/task-1"
-      );
+      const request = new NextRequest("http://localhost:3000/api/tasks/task-1");
       const params = { id: "task-1" };
 
-      const response = await GET_TASK(request as any, { params } as any);
+      const response = await GET_TASK(request, { params });
 
       expect(response.status).toBe(401);
       const data = await response.json();
@@ -277,12 +235,10 @@ describe("Tasks API - Simple Tests", () => {
 
       mockSelect.mockReturnValue({ from: mockFrom });
 
-      const request = new MockNextRequest(
-        "http://localhost:3000/api/tasks/task-1"
-      );
+      const request = new NextRequest("http://localhost:3000/api/tasks/task-1");
       const params = { id: "task-1" };
 
-      const response = await GET_TASK(request as any, { params } as any);
+      const response = await GET_TASK(request, { params });
 
       expect(response.status).toBe(404);
       const data = await response.json();
@@ -302,12 +258,10 @@ describe("Tasks API - Simple Tests", () => {
 
       mockSelect.mockReturnValue({ from: mockFrom });
 
-      const request = new MockNextRequest(
-        "http://localhost:3000/api/tasks/task-1"
-      );
+      const request = new NextRequest("http://localhost:3000/api/tasks/task-1");
       const params = { id: "task-1" };
 
-      const response = await GET_TASK(request as any, { params } as any);
+      const response = await GET_TASK(request, { params });
 
       expect(response.status).toBe(200);
       const data = await response.json();
