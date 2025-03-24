@@ -75,6 +75,30 @@ export function NaturalLanguageTaskInput({
     }
   }, [input]);
 
+  // Listen for template selection events
+  useEffect(() => {
+    const handleTemplateSelection = (event: CustomEvent) => {
+      if (event.detail && event.detail.text) {
+        setInput(event.detail.text);
+        parseInput(event.detail.text);
+      }
+    };
+
+    // Add event listener
+    document.addEventListener(
+      "set-task-input",
+      handleTemplateSelection as EventListener
+    );
+
+    // Clean up
+    return () => {
+      document.removeEventListener(
+        "set-task-input",
+        handleTemplateSelection as EventListener
+      );
+    };
+  }, []);
+
   const parseInput = (text: string) => {
     const parsed = parseNaturalLanguageTask(text);
     setParsedTask(parsed);

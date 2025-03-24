@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Link from "next/link";
 import {
   Plus,
   Clock,
@@ -20,7 +19,6 @@ import {
   AlertCircle,
   Search,
   Filter,
-  HelpCircle,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -46,10 +44,9 @@ import { AnimatedList } from "@/components/ui/animated-list";
 import { TaskCategories } from "@/components/tasks/task-categories";
 import { TaskListEnhanced } from "@/components/tasks/task-list-enhanced";
 import { DraggableTaskList } from "@/components/tasks/draggable-task-list";
-import { TaskInputPreview } from "@/components/tasks/task-input-preview";
-import { TaskInputHelp } from "@/components/tasks/task-input-help";
 import { TaskTemplateSelector } from "@/components/tasks/task-template-selector";
-import { parseTaskInput } from "@/lib/utils/task-parser";
+import { NaturalLanguageTaskInput } from "@/components/tasks/natural-language-task-input";
+import { ParsedTaskData } from "@/lib/utils/natural-language-parser";
 
 export default function TasksPage() {
   // Use the tasks hook
@@ -66,8 +63,7 @@ export default function TasksPage() {
     reorderTasks,
   } = useTasks();
 
-  // New task input
-  const [newTaskTitle, setNewTaskTitle] = useState("");
+  // Task state
   const [isCreating, setIsCreating] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -76,16 +72,13 @@ export default function TasksPage() {
     string | undefined
   >();
 
-  // Add new task
-  const handleAddTask = async () => {
-    if (newTaskTitle.trim() === "" || isCreating) return;
+  // Add new task using natural language input
+  const handleAddTask = async (parsedTask: ParsedTaskData) => {
+    if (isCreating) return;
 
     setIsCreating(true);
 
     try {
-      // Parse the task input
-      const parsedTask = parseTaskInput(newTaskTitle);
-
       // Create the task with the parsed details
       await createTask({
         title: parsedTask.title,
@@ -96,11 +89,9 @@ export default function TasksPage() {
         category: parsedTask.category,
         tags: parsedTask.tags,
         isRecurring: parsedTask.isRecurring,
-        recurringType: parsedTask.recurringType,
-        recurringInterval: parsedTask.recurringInterval,
+        recurringType: parsedTask.recurringPattern,
+        recurringInterval: 1, // Default to 1 for now
       });
-
-      setNewTaskTitle("");
     } finally {
       setIsCreating(false);
     }
@@ -278,47 +269,24 @@ export default function TasksPage() {
 
       <div className="mb-8">
         <div className="flex flex-col gap-2">
-          <div className="flex gap-2">
-            <div className="flex-1 relative">
-              <div className="absolute right-2 top-2">
-                <TaskInputHelp />
-              </div>
-              <Input
-                type="text"
-                placeholder="Add a new task... (e.g., 'Call John tomorrow at 3pm p1 #work')"
-                value={newTaskTitle}
-                onChange={(e) => setNewTaskTitle(e.target.value)}
-                className="focus-visible:ring-primary pr-10"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    handleAddTask();
-                  }
-                }}
+          <div className="flex gap-2 items-start">
+            <div className="flex-1">
+              <NaturalLanguageTaskInput
+                onTaskCreate={handleAddTask}
+                placeholder="Add a new task... (e.g., 'Call John tomorrow at 3pm #important @work')"
+                className="w-full"
               />
-              <TaskInputPreview input={newTaskTitle} />
             </div>
             <TaskTemplateSelector
-              onSelectTemplate={(templateText) => setNewTaskTitle(templateText)}
+              onSelectTemplate={(templateText) => {
+                // This will be handled by the NaturalLanguageTaskInput component internally
+                // We'll keep this for compatibility with templates
+                const inputEvent = new CustomEvent("set-task-input", {
+                  detail: { text: templateText },
+                });
+                document.dispatchEvent(inputEvent);
+              }}
             />
-            <Button onClick={handleAddTask} disabled={isCreating} className="">
-              {isCreating ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Adding...
-                </>
-              ) : (
-                "Add"
-              )}
-            </Button>
-          </div>
-          <div className="flex justify-end">
-            <Link
-              href="/app/tasks/natural-language"
-              className="text-sm text-primary hover:underline flex items-center gap-1"
-            >
-              <HelpCircle className="h-3 w-3" />
-              Try our new natural language input
-            </Link>
           </div>
         </div>
       </div>
@@ -395,7 +363,7 @@ export default function TasksPage() {
         isOpen={isTaskDetailsOpen}
         onClose={closeTaskDetails}
         onSave={handleSaveTask}
-        onDelete={handleDeleteTask}
+        onDelete={deleteTask}
       />
     </div>
   );
